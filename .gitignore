@@ -1,0 +1,9 @@
+*.swp
+*.swo
+*.out
+# Ignore the pre-calculated contrast index matrices
+CIM
+modules
+*.asv
+obs
+beta
