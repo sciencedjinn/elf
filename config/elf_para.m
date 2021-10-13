@@ -90,29 +90,39 @@ para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual hist
 para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'validranges', 'allvalid2', 'noise'                               
                        
 %% plotting constants
-% Some labels for the ELF plot
-para.plot.channames         = {'Luminance', 'R/G', 'G/B', 'R/B'};
-para.plot.scalenames        = {'', ''};%{'fine', 'coarse'};
-para.plot.hwnames           = {'', ''};%{'1\circ', '10\circ'};
-para.plot.typenames         = {'lum', 'rg', 'gb', 'rb'};  % this is what the types are called in the variable res
-para.plot.binnames          = {'Down:', 'Horizon:', 'Up:'};
-para.plot.binranges         = {'-90\circ - -10\circ', '-10\circ - +10\circ', '+10\circ +90\circ'};
+envPath = fullfile(fileparts(mfilename("fullpath")), '..', 'config');
+d = DotEnv(envPath, '');
 
-para.plot.channelscaling    = [0.5 2 2 2];  % Scales for contrast ellipses in the three contrast channels. E.g., doubling the first number will double the size of all luminance contrast ellipses 
+plotParameters = ...
+    {'RED_CHANNEL_COLOUR',   'doublevector';
+     'GREEN_CHANNEL_COLOUR', 'doublevector'; 
+     'BLUE_CHANNEL_COLOUR',  'doublevector';
+     'WHITE_CHANNEL_COLOUR', 'doublevector';
+     'RED_CHANNEL_LINEWIDTH',   'double';
+     'GREEN_CHANNEL_LINEWIDTH', 'double'; 
+     'BLUE_CHANNEL_LINEWIDTH',  'double';
+     'WHITE_CHANNEL_LINEWIDTH', 'double';
+     'PERC50_SHADING', 'doublevector';
+     'PERC95_SHADING', 'doublevector';
+     'AXES_FONTSIZE', 'double';
+     'SHOW_ELEVATION_ZONES', 'logical';
+     'SHOW_RADIANCE_REFERENCES', 'logical';
+     'RADIANCE_REFERENCES_LOCATION', 'char';
+     'INFO_SHOW_NAME_AND_STATS', 'logical';
+     'INFO_SHOW_TIME_AND_DATE', 'logical';
+     'INFO_FONTSIZE', 'double';
+     'RADIANCE_REFERENCE_LEVELS', 'doublevector';
+     'RADIANCE_REFERENCE_NAMES', 'charvector'};
 
-para.plot.channeldist       = 60;        % distance between plots for different contrast channels, in pixels
-para.plot.scaledist         = 0;%40;     % distance between plots for different scales, in pixels
-para.plot.plothists         = false;     % if this is true, contrast histograms will be plotted rather than contrast ellipses
+p.plot = d.extractValues('PLOT', plotParameters);
+p.plot.intChannelColours = {p.plot.redChannelColour, p.plot.greenChannelColour, p.plot.blueChannelColour, p.plot.whiteChannelColour};
+p.plot.intChannelLinewidths = {p.plot.redChannelLinewidth, p.plot.greenChannelLinewidth, p.plot.blueChannelLinewidth, p.plot.whiteChannelLinewidth};
 
-para.plot.intmeantype       = 'median';  % determines type of statistics used for intensity plots; can be 'mean' (to plot min/mean-std/mean/mean+std/max) or 'median' (to plot 5th/25th/50th/75th/95th percentiles)
-para.plot.inttotalmeantype  = 'hist';    % determines type of statistics used for overall intensity plots; can be 'mean'/'median'/'hist'
-para.plot.datasetmeantype   = 'logmean'; % determines how scenes are averaged across a dataset; can be 'mean'/'median'/'logmean'
-para.plot.intreflevels      = 10.^[12 14 16 18 20]/300; % Reference levels to plot in intensity plots ...
-para.plot.intrefnames       = {'Starlight', 'Moonlight', 'Mid dusk', 'Overcast', 'Sunlight'}; % ... and their labels
-para.plot.intchannelcolours = {[1 0 0], [0.2 0.85 0], [0 0 1], [0 0 0]}; % plotting colours for the four channels R, G, B, BW (as normalised RGB triplets)
-para.plot.contchannelcolours = {[0 0 0], [1 0.6 0.2], [0 1 0.8], [1 0 1]};%[0.4667 0.6745 0.1882], [1 0 1]}; % plotting colours for the channel comparisons (luminance, RG, GB, RB)
-
-
+%%TODO
+p.plot.intmeantype       = 'median';  % determines type of statistics used for intensity plots; can be 'mean' (to plot min/mean-std/mean/mean+std/max) or 'median' (to plot 5th/25th/50th/75th/95th percentiles)
+p.plot.inttotalmeantype  = 'hist';    % determines type of statistics used for overall intensity plots; can be 'mean'/'median'/'hist'
+p.plot.datasetmeantype   = 'logmean'; % determines how scenes are averaged across a dataset; can be 'mean'/'median'/'logmean'
+para.plot = p.plot;
 
 
 

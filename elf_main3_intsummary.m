@@ -47,9 +47,14 @@ meanim          = elf_io_readwrite(para, 'loadmeanimg_tif');
 
 %% Plot results
 % Present stats in figure 1
+figInfo1 = {para.paths.dataset, sprintf('n = %d scenes, %d exposure per scene', length(info), length(infosum.DateTimeOriginal)/length(info))};
+datefmt = 'yyyy-mm-dd HH:MM';
+figInfo2 = {sprintf('%s to', datestr(min(infosum.DateTimeOriginal), datefmt)), sprintf('%s', datestr(max(infosum.DateTimeOriginal), datefmt))};
+
+
 fh              = elf_support_formatA4l(35); clf;
                   set(fh, 'Name', 'Environmental Light Field');
-                  elf_plot_intsummary(para, intmean, meanim, infosum, fh, para.paths.dataset, sprintf('n = %d scenes, %d exposure per scene', length(info), length(infosum.DateTimeOriginal)/length(info))); % generate summary ELF plot
+                  elf_plot_intsummary(para, intmean, meanim, infosum, fh, figInfo1, figInfo2); % generate summary ELF plot
 
 %% Save output to pdf and tif
 fh = elf_support_formatA4l(35);

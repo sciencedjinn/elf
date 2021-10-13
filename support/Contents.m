@@ -4,7 +4,7 @@
 % Dependencies: No toolbox functions required.
 %
 % Files
-%   elf_support_compstruct  - Recursively compares two structs and copies missing fields into the receiving struct 
+%   compStruct              - Recursively compares two structs and copies missing fields into the receiving struct 
 %   elf_support_formatA3    - Opens and formats window to be an A3 landscape figure
 %   elf_support_formatA4    - Opens and formats window to be an A4 portrait figure
 %   elf_support_formatA4l   - Opens and formats window to be an A4 landscape figure

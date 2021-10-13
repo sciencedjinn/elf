@@ -159,16 +159,15 @@ switch proj
         [~, ypos] = ismember([10 10 -10 -10], ele); 
         plot(ha, [1 x;1 x]', reshape(ypos, [2 2]), 'k--');
         
-        %calculate x-ticks and y-ticks
+        % calculate x-ticks and y-ticks
         [ism, xpos] = ismember(-90:30:90, azi); 
         xts = sort(xpos(ism)); % XTick sorted
         [ism, ypos] = ismember(-90:30:90, ele); 
         yts = sort(ypos(ism)); % YTick sorted
-        set(ha, 'XTick', xts, 'XTickLabel', num2str(azi(xts)'), 'YTick', yts, 'YTickLabel', num2str(ele(yts)'), 'fontsize', 8);
+        set(ha, 'XTick', [], 'XTickLabel', [], 'YTick', yts, 'YTickLabel', num2str(ele(yts)'));
 
         % set labels and position
-        xlabel(ha, 'azimuth (\circ)', 'fontweight', 'bold', 'fontsize', 9);
-        ylabel(ha, 'elevation (\circ)', 'fontweight', 'bold', 'fontsize', 9);
+        ylabel(ha, 'elevation (\circ)', 'fontweight', 'bold');
         switch handletype
             case {'figure', 'uipanel'}
                 b = get(ha, 'TightInset');

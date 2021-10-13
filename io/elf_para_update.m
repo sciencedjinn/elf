@@ -6,4 +6,4 @@ oldpara.ana    = para.ana;
 oldpara.plot   = para.plot;
 oldpara.paths  = para.paths;
 oldpara.usegpu = para.usegpu;
-para           = elf_support_compstruct(oldpara, para);       % if a field does not exist in oldpara, it is copied from para
+para           = compStruct(oldpara, para);       % if a field does not exist in oldpara, it is copied from para
