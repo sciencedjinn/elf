@@ -9,9 +9,9 @@ function elf_plot_int(h, d, d2, plotPara)
 cols          = plotPara.intChannelColours;                             % standard rgb colours for the four channels R, G, B, BW
 lws           = round(plotPara.intChannelLinewidths*plotPara.corrFac);  % linewidths for the four channels R, G, B, BW
 refLevels     = plotPara.radianceReferenceLevels;                       % These are the reference light levels for starlight, moonlight, mid dusk, overcast, sunlight %FIXME
-xLabMain      = {'spectral photon radiance (lit)', '(log_{10} photons m^{-2} s^{-1} sr^{-1} nm^{-1})'}; % x-axis label for main plot
-xLabColour    = 'relative colour';                                      %  x-axis label for colour plot
-xLabRange     = 'log_{10} intensity range';                             %  x-axis label for range plot
+xLabMain      = {plotPara.mainXLabel1, plotPara.mainXLabel2};           % x-axis label for main plot
+xLabColour    = plotPara.colourXLabel;                                  % x-axis label for colour plot
+xLabRange     = plotPara.rangeXLabel;                                   % x-axis label for range plot
 nch           = size(d.means, 1);
 yy            = d2.region_meanele(:)';
 

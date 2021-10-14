@@ -31,7 +31,11 @@ plotParameters = ...
      'Y_AXIS_LABEL_WIDTH', 'double';
      'INFO_PANEL_HEIGHT', 'double';
      'ROW_SPACING', 'double';
-     'DEFAULT_RADIANCE_RANGE', 'double'};
+     'DEFAULT_RADIANCE_RANGE', 'double';
+     'MAIN_X_LABEL_1', 'string';
+     'MAIN_X_LABEL_2', 'string';
+     'COLOUR_X_LABEL', 'string';
+     'RANGE_X_LABEL', 'string'};
 
 plotP = d.extractValues('PLOT', plotParameters);
 plotP.intChannelColours = {plotP.redChannelColour, plotP.greenChannelColour, plotP.blueChannelColour, plotP.whiteChannelColour};
