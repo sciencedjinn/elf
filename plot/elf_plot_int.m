@@ -16,7 +16,7 @@ nch           = size(d.means, 1);
 yy            = d2.region_meanele(:)';
 
 defWidth = plotPara.defaultRadianceRange;
-zoneLineWidth = round(10*plotPara.corrFac);
+zoneLineWidth = round(10*plotPara.corrFac * plotPara.axesFontsize/10);
 labelFS = round(plotPara.axesFontsize*plotPara.corrFac);
 
 %% prepare plots
@@ -68,7 +68,7 @@ for ch = 1:nch
     line(imean, yy, 'parent', h.ahMainPlot, 'color', cols{ch}, 'linewidth', lws(ch));
 end
 
-%% MAIN PLOT: grids
+%% MAIN PLOT: grids and elevation zones
 % plot horizontal grid on invisible, transparent top axes ah2
 plot(h.ahMainOverlay, [0 1.02;0 1.02;0 1.02;0 1.02;0 1.02]', [60 60;30 30;0 0;-30 -30;-60 -60]', 'k:');
 if plotPara.showElevationZones
