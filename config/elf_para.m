@@ -89,41 +89,8 @@ para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual hist
                                         % 'hdr'      - Calculate histograms from the HDR image.
 para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'validranges', 'allvalid2', 'noise'                               
                        
-%% plotting constants
-envPath = fullfile(fileparts(mfilename("fullpath")), '..', 'config');
-d = DotEnv(envPath, '');
-
-plotParameters = ...
-    {'RED_CHANNEL_COLOUR',   'doublevector';
-     'GREEN_CHANNEL_COLOUR', 'doublevector'; 
-     'BLUE_CHANNEL_COLOUR',  'doublevector';
-     'WHITE_CHANNEL_COLOUR', 'doublevector';
-     'RED_CHANNEL_LINEWIDTH',   'double';
-     'GREEN_CHANNEL_LINEWIDTH', 'double'; 
-     'BLUE_CHANNEL_LINEWIDTH',  'double';
-     'WHITE_CHANNEL_LINEWIDTH', 'double';
-     'PERC50_SHADING', 'doublevector';
-     'PERC95_SHADING', 'doublevector';
-     'AXES_FONTSIZE', 'double';
-     'SHOW_ELEVATION_ZONES', 'logical';
-     'SHOW_RADIANCE_REFERENCES', 'logical';
-     'RADIANCE_REFERENCES_LOCATION', 'char';
-     'INFO_SHOW_NAME_AND_STATS', 'logical';
-     'INFO_SHOW_TIME_AND_DATE', 'logical';
-     'INFO_FONTSIZE', 'double';
-     'RADIANCE_REFERENCE_LEVELS', 'doublevector';
-     'RADIANCE_REFERENCE_NAMES', 'charvector'};
-
-p.plot = d.extractValues('PLOT', plotParameters);
-p.plot.intChannelColours = {p.plot.redChannelColour, p.plot.greenChannelColour, p.plot.blueChannelColour, p.plot.whiteChannelColour};
-p.plot.intChannelLinewidths = {p.plot.redChannelLinewidth, p.plot.greenChannelLinewidth, p.plot.blueChannelLinewidth, p.plot.whiteChannelLinewidth};
-
-%%TODO
-p.plot.intmeantype       = 'median';  % determines type of statistics used for intensity plots; can be 'mean' (to plot min/mean-std/mean/mean+std/max) or 'median' (to plot 5th/25th/50th/75th/95th percentiles)
-p.plot.inttotalmeantype  = 'hist';    % determines type of statistics used for overall intensity plots; can be 'mean'/'median'/'hist'
-p.plot.datasetmeantype   = 'logmean'; % determines how scenes are averaged across a dataset; can be 'mean'/'median'/'logmean'
-para.plot = p.plot;
-
+%% plotting parameters (will be loaded again at plotting time)
+para.plot = elf_plottingPara;
 
 
 

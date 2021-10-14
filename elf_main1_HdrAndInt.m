@@ -6,7 +6,7 @@ function elf_main1_HdrAndInt(dataset, imgformat, verbose, rotation)
 % Uses: elf_paths, elf_support_logmsg, elf_para, elf_info_collect, 
 %       elf_info_summarise, elf_hdr_brackets, elf_project_image, 
 %       elf_io_readwrite, elf_hdr_calcHDR, elf_io_correctdng, elf_io_imread
-%       elf_analysis_int, elf_support_formatA4l, elf_plot_intsummary
+%       elf_analysis_int, elf_support_formatA4l
 %
 % Loads files: DNG image files in data folder
 % Saves files: HDR image files in scene subfolder, *.mat files in scenes subfolder, per-scene intensity results in mat folder
@@ -112,18 +112,20 @@ for setnr = 1:size(sets, 1)
     end
 
     %% Plot summary figure for this scene
-    fh = elf_support_formatA4l(4); clf;
+
     datasetname = strrep(para.paths.dataset, '\', '\\'); % On PC, paths contain backslashes. Replace them by double backslashes to avoid a warning
-    elf_plot_intsummary(para, res, I, infosum, fh, sprintf('%s, scene #%d of %d', datasetname, setnr, size(sets, 1)), ...
-        sprintf('%d exposure, exposure m.a.d %.0f%% (max %.0f%%)', numims, 100*mean(abs(res.scalefac-1)), 100*max(abs(res.scalefac-1)) )); % res.scalefac are the factors to scale each image to the mean exposure
-    set(fh, 'Name', sprintf('Scene #%d of %d', setnr, size(sets, 1)));
+    name = sprintf('%s, scene #%d of %d', datasetname, setnr, size(sets, 1));
+    h = elf_plot_intSummary(res, I, infoSum, name, length(info));
+
+%     info2 = sprintf('%d exposure, exposure m.a.d %.0f%% (max %.0f%%)', numims, 100*mean(abs(res.scalefac-1)), 100*max(abs(res.scalefac-1)) );
+    set(h.fh, 'Name', sprintf('Scene #%d of %d', setnr, size(sets, 1)));
     drawnow;
     
     %% save output files
     res.info  = info(setstart); % use the info of the first read image
     scenename = sprintf('scene%03d', setnr);
     elf_io_readwrite(para, 'saveres', scenename, res);
-    if savejpgs, elf_io_readwrite(para, 'saveivep_jpg', [scenename '_int'], fh); end    % small bottleneck
+    if savejpgs, elf_io_readwrite(para, 'saveivep_jpg', [scenename '_int'], h.fh); end    % small bottleneck
     
     
                     if setnr == 1

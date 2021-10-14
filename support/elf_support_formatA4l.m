@@ -1,24 +1,28 @@
-function figh = elf_support_formatA4l(fignum, screenpos)
+function [fh, corrFac] = elf_support_formatA4l(fignum, screenpos)
 % figh = elf_support_formatA4l(fignum, screenpos)
 
-if nargin < 2
-    screenpos = 1;
-end
-if nargin < 1
-    figh = figure;
-else
-    figh = figure(fignum);
-end
+if nargin<2, screenpos = 1; end
+if nargin<1, fh = figure; else, fh = figure(fignum); end
 
-ss  = get(0, 'ScreenSize');  % [1 1 1920 1200]
-h   = (ss(4)-150);             % height in pixels   % TODO: This subtraction (for menu bar) should be dependent on screen size        
-w   = (ss(4)-60) / (21/29.7); % width in pixels         
-pos = [1+(screenpos-1)*w  60 w h];
-% pos = [0.2 1.5 29.7 21];
-orient(figh, 'landscape');
-set(figh, 'Units', 'pixels', 'position', pos);
-set(figh, 'PaperUnits', 'centimeters', 'PaperSize', [29.7 21], ...
+ss  = get(0, 'ScreenSize');   % [1 1 1920 1200]
+screenHeight = ss(4);
+
+if screenHeight>1080
+    % For larger screens, always use a 1000 pixel high window. This makes it easiest to keep figures consistent
+    figureHeight = 1000;
+    corrFac = 1;
+else
+    % For smaller screens, reduce the window size, but keep some room for the taskbar
+    figureHeight = 0.9*screenHeight;
+    corrFac = figureHeight/1000; % this correction factor can later be used to adjust fontsizes and other absolute sizing
+end
+     
+figureWidth = figureHeight / (21/29.7); % width in pixels         
+pos = [1+(screenpos-1)*figureWidth screenHeight-figureHeight-30 figureWidth figureHeight];
+orient(fh, 'landscape');
+set(fh, 'MenuBar', 'none', 'ToolBar', 'none', 'Units', 'pixels', 'position', pos);
+set(fh, 'PaperUnits', 'centimeters', 'PaperSize', [29.7 21], ...
     'color', 'w', 'paperpositionmode', 'manual', 'paperposition', [1 .5 27.7 20], ...
-    'Renderer', 'painters');%'zbuffer');
+    'Renderer', 'painters');
 drawnow;
-% 60 offset if to accommodate Taskbar
+

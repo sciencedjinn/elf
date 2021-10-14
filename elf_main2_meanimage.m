@@ -4,8 +4,7 @@ function elf_main2_meanimage(dataset, verbose)
 % "bright" method, which sets the mean luminance to 1/4 of maximum.
 %
 % Uses: elf_support_logmsg, elf_paths, elf_para, elf_io_readwrite, 
-%       elf_plot_image, elf_analysis_int, elf_support_formatA4l,
-%       elf_plot_intsummary
+%       elf_plot_image, elf_analysis_int, elf_support_formatA4l
 %
 % Loads files: *.tif files in scenes subfolder
 % Saves files: Mean image as tif in Detailed results folder, and as jpg in public output folder
