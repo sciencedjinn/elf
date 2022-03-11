@@ -1,4 +1,4 @@
-function h = elf_plot_intsummary(res, meanIm, infoSum, name, nScenes)
+function h = elf_plot_intSummary(res, meanIm, infoSum, name, nScenes)
 % ELF_PLOT_SUMMARY creates the main ELF intensity summary graph
 %
 % elf_plot_intsummary(para, res, meanim, infosum, fh, name, name2)
