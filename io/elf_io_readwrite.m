@@ -81,7 +81,7 @@ switch action
         para.paths.fname_meanivep_pdf = fullfile(para.paths.outputfolder, [ds '_meanint.pdf']);
         para.paths.fname_meanivep_jpg = fullfile(para.paths.outputfolder_pub, [ds '_meanint.jpg']);
         
-        para.paths.fname_stats        = fullfile(para.paths.outputfolder, [ds '_stats.xlsx']);
+        para.paths.fname_stats        = fullfile(para.paths.outputfolder, [ds '_stats.csv']);
         para.paths.fname_meanres      = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_meanres.mat']);
         para.paths.fname_meanres_int  = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_meanres_int.mat']);
         para.paths.fname_collres      = fullfile(para.paths.outputfolder, [ds '_collres.mat']);

@@ -35,12 +35,8 @@ data            = elf_io_readwrite(para, 'loadres', fnames_im);
 intMean         = elf_analysis_datasetmean(data, 1:length(data), 1, para.plot.datasetmeantype);                                   % Calculate descriptor mean only for intensities
 elf_io_readwrite(para, 'savemeanres_int', '', intMean); % write data mean
 
-%% Write stats into Excel file
-if strcmp(para.syst, 'pc')
-    elf_analysis_writestats(intMean, para, true);
-else
-    warning('Writing statistics to an Excel file is currently only supported for PC. Text file output on Mac will be available soon.');
-end
+%% Write stats into CSV file
+elf_analysis_writestats(intMean, para.paths.fname_stats);
 
 %% Load mean image
 meanIm  = elf_io_readwrite(para, 'loadmeanimg_tif');
