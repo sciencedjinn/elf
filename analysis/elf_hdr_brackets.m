@@ -55,6 +55,3 @@ if isnan(bracketing_rep)
 else
     sets = [locations' [locations(2:end)' - 1; length(rawinfo)]];
 end
-%% OLD version
-% boundaries = find(diff(ev) <= 0);
-% sets = [[1; boundaries'+1] [boundaries'; length(rawinfo)]];

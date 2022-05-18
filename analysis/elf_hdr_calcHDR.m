@@ -1,13 +1,12 @@
-function im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confmult, confsat)
+function im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confsat)
 % ELF_HDR_CALCHDR calculates an HDR image from a stack of calibrated images.
 %
-%   im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confmult, confsat)
+%   im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confsat)
 %
 % Inputs:
 %   im_cal    - N x M x C x I double, calibrated image stack
 %   conf      - N x M x C x I double, raw (dark-corrected) image stack, used for confidence/saturation calculation
 %   hdrmethod - 'overwrite'/'overwrite2'/'validranges'/'allvalid'/'allvalid2'(current default)/'noise', see below for details of methods
-%   confmult  - the multiplier that was used to convert raw image pixels in conf to flux values in im_cal, obtained from elf_calib_abssens
 %   confsat   - C x I double, the saturation values for each channel/image, obtained from elf_calib_abssens
 %
 % Outputs:
@@ -52,27 +51,6 @@ switch hdrmethod
             thisconf                = conf(:, :, :, ii);
             im_HDR(thisconf<ulfull) = thisim(thisconf<ulfull);
         end
-        
-    case 'validranges'
-        %% Same way as histograms (this image shows what would be included in the histogram)
-        % Calculates a valid range of raw counts for each exposure. This method leaves some pixels empty
-        im_HDR = cell(size(im_cal, 3), 1);
-
-        for ch = 1:size(im_cal, 3)
-            ul                  = confsat(ch, :);
-            ul(1)               = Inf;
-            ll(1:length(ul)-1)  = ul(2:end) ./ confmult(2:end) .* confmult(1:end-1);
-            ll(length(ul))      = -Inf;
-            im_HDR{ch}          = nan(size(im_cal, 1), size(im_cal, 2)); % pre-allocate
-
-            for ii = 1:size(im_cal, 4)  % for each image, starting at the lowest EV image
-                thisimch      = im_cal(:, :, ch, ii); % extract THIS row for THIS channel for THIS image
-                thisconf      = conf(:, :, ch, ii);
-                im_HDR{ch}(thisconf>=ll(ii) & thisconf<ul(ii)) = thisimch(thisconf>=ll(ii) & thisconf<ul(ii));
-            end
-        end
-
-        im_HDR = cat(3, im_HDR{:});
 
     case 'allvalid'
         %% always use the brightest pixel where NONE of the channels is saturated. 

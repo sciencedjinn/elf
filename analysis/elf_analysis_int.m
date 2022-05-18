@@ -1,4 +1,4 @@
-function [res, totalres] = elf_analysis_int(im, ele, type, hdivn, perc, verbose, conf, conffactors)
+function [res, totalres] = elf_analysis_int(im, ele, type, hdivn, perc, verbose)
 % ELF_ANALYSIS_INT calculates intensity descriptors in a calibrated image stack.
 %   Type can be read from para.ana.intanalysistype
 %   Statistics are calculated both on the whole image and on a strip-by-strip basis, and are given for each individual channel as well as for total
@@ -48,23 +48,24 @@ img4ch      = cat(3, im, mean(im, 3));  % Construct 4 channels (R,G,B,BW) for in
 allrows     = cell(imh, size(img4ch, 3)); % pre-allocate
 
 %% Create HDR histograms for each row
-if strcmp(type, 'histcomb')
-    conf(:, :, 4, :)    = max(conf, [], 3);         % for BW channel, use max %% TODO: Does this make sense?
-    conffactors(5, :)   = min(conffactors(2:4, :), [], 1);  % for BW channel, use min %% TODO: Does this make sense?
-end
+% if strcmp(type, 'histcomb')
+%     conf(:, :, 4, :)    = max(conf, [], 3);         % for BW channel, use max %% TODO: Does this make sense?
+%     conffactors(4, :)   = min(conffactors(:, :), [], 1);  % for BW channel, use min %% TODO: Does this make sense?
+% end
 for row = 1:imh                 % for each row
 	for ch = 1:size(img4ch, 3)  % for each channel (R,G,B,BW)
         switch type
             case 'hdr'
                 allrows{row, ch}   = img4ch(row, :, ch);
             case 'histcomb'
-                % combine image histograms across all images in the stack
-                allrows{row, ch} = elf_analysis_int_combine(img4ch(row, :, ch, :), conf(row, :, ch, :), conffactors(1, :), conffactors(ch+1, :));
-                %%% allrows can have empty elements; does this happen when there are none in the confidence interval? This should be fixed!
-                if isempty(allrows{row,ch})
-                    warning('Empty image histogram for row %d, channel %d', row, ch);
-                    allrows{row,ch} = NaN;
-                end
+                error('Currently not supported!')
+%                 % combine image histograms across all images in the stack
+%                 allrows{row, ch} = elf_analysis_int_combine(img4ch(row, :, ch, :), conf(row, :, ch, :), conffactors(1, :), conffactors(ch+1, :));
+%                 %%% allrows can have empty elements; does this happen when there are none in the confidence interval? This should be fixed!
+%                 if isempty(allrows{row,ch})
+%                     warning('Empty image histogram for row %d, channel %d', row, ch);
+%                     allrows{row,ch} = NaN;
+%                 end
             otherwise
                 error('Unknown type: %s', type);
         end
