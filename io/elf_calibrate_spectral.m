@@ -37,6 +37,8 @@ end
 
 switch method
     case 'colmat'
+        % Full deconvolution of channels to reconstruct a spectrum that is flat between 400-500, 500-600 and 600-700 nm
+
         colmat  = sub_getColMat(camstring);
 
         % correct for spectral and absolute sensitivity
@@ -49,6 +51,8 @@ switch method
         im     = im * 1.0038;
         
     case 'col'
+        % This is the current default:  Scale individual channels so each one represents the weighted average spectral photon radiance
+        %                               over that pixels sensitivity
         col  = sub_getCol(camstring);
         im(:, :, 1) = im(:, :, 1) / col(1);
         im(:, :, 2) = im(:, :, 2) / col(2);

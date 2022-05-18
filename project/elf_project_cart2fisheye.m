@@ -46,7 +46,7 @@ switch method
                 % mid = [2487.7 3680.5]; % measured by hand (imellipse) %COMMENTED OUT 25/03/2015
                 warning('No spatial calibration available for Nikon D800E. Using an estimated calibration for an equisolid projection.');
                 corr = 1.02;
-            case 'nikon d810'
+            case {'nikon d810', 'nikon d850'}
                 corr = 1;
                 
             case 'canon eos-1ds mark ii'

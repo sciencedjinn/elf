@@ -87,7 +87,7 @@ para.ana.colourcalibtype    = 'col';    % 'colmat'   - Full deconvolution of cha
 para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual histograms for each exposure, and combine them using valid raw count ranges.
                                         %              This method has the problem that some pixels might contribute more than once, while others never contribute.
                                         % 'hdr'      - Calculate histograms from the HDR image.
-para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'validranges', 'allvalid2', 'noise'                               
+para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'allvalid2', 'noise'                               
                        
 %% plotting parameters (will be loaded again at plotting time)
 para.plot = elf_plottingPara;

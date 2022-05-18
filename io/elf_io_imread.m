@@ -48,7 +48,5 @@ switch lower(ext(2:end))
         im = imread(fullfilename);
 end
 
-
-
 end %main
 
