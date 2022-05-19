@@ -106,43 +106,42 @@ function [blackLevel, srcs, warnings] = sub_applyDarkImages(blackLevel, srcs, da
 
     if isempty(dark)
         elf_support_logmsg('          No dark images were found.\n');
-        return
-    end
+    else
+        elf_support_logmsg('          Applying dark images for all available conditions...\n');
+        uExp = unique(dark.exp);
+        for e = 1:length(uExp)
+            thisExp = uExp(e);
+            uIso = unique(dark.iso(dark.exp==thisExp));
+            for i = 1:length(uIso)
+                thisIso = uIso(i);
+                selDark = dark.iso==thisIso & dark.exp==thisExp;
+                selLight = iso==thisIso & exp==thisExp;
+                if nnz(selDark)==0
+                    error('Something is wrong with this loop')
+                elseif nnz(selDark)>1
+                    % this condition has more than one dark image, linearly interpolate
+                    elf_support_logmsg('              For ISO %d & exposure %.3f s, %d dark images were found. Linearly interpolating over time.\n', thisIso, thisExp, nnz(selDark));
+                    tLight = t(selLight);
+                    tDark = t(selDark);
+                    blackLevel(selLight, 1) = interp1(tDark, dark.mean(selDark, 1), tLight, 'linear', 'extrap');
+                    blackLevel(selLight, 2) = interp1(tDark, dark.mean(selDark, 2), tLight, 'linear', 'extrap');
+                    blackLevel(selLight, 3) = interp1(tDark, dark.mean(selDark, 3), tLight, 'linear', 'extrap');
+                    srcs(selLight) = 3; % 2 means this black level comes from linearly interpolated dark image
     
-    elf_support_logmsg('          Applying dark images for all available conditions...\n');
-    uExp = unique(dark.exp);
-    for e = 1:length(uExp)
-        thisExp = uExp(e);
-        uIso = unique(dark.iso(dark.exp==thisExp));
-        for i = 1:length(uIso)
-            thisIso = uIso(i);
-            selDark = dark.iso==thisIso & dark.exp==thisExp;
-            selLight = iso==thisIso & exp==thisExp;
-            if nnz(selDark)==0
-                error('Something is wrong with this loop')
-            elseif nnz(selDark)>1
-                % this condition has more than one dark image, linearly interpolate
-                elf_support_logmsg('              For ISO %d & exposure %.3f s, %d dark images were found. Linearly interpolating over time.\n', thisIso, thisExp, nnz(selDark));
-                tLight = t(selLight);
-                tDark = t(selDark);
-                blackLevel(selLight, 1) = interp1(tDark, dark.mean(selDark, 1), tLight, 'linear', 'extrap');
-                blackLevel(selLight, 2) = interp1(tDark, dark.mean(selDark, 2), tLight, 'linear', 'extrap');
-                blackLevel(selLight, 3) = interp1(tDark, dark.mean(selDark, 3), tLight, 'linear', 'extrap');
-                srcs(selLight) = 3; % 2 means this black level comes from linearly interpolated dark image
-
-                %% Warn if some of the real images lie too far outside the range
-                if any(tLight>max(tDark)+0.2/24) || any(tLight<min(tDark)-0.2/24)
-                    warnings{end+1} = 'Some images were taken >30 min outside the dark-image range.'; %#ok<AGROW> 
-                end
-            else
-                % this condition has only one dark image
-                elf_support_logmsg('              For ISO %d & exposure %.3f s, 1 dark image was found.\n', thisIso, thisExp);
-                blackLevel(selLight, :) = dark.mean(selDark, :);
-                srcs(selLight) = 2; % 2 means this black level comes from a single dark image
-
-                %% Warn if some of the real images were taken much earlier or later
-                if any(abs(t(selLight)-t(selDark))>0.5/24)
-                    warnings{end+1} = 'Some images were taken >30 min before/after their dark-image.\n'; %#ok<AGROW> 
+                    %% Warn if some of the real images lie too far outside the range
+                    if any(tLight>max(tDark)+0.2/24) || any(tLight<min(tDark)-0.2/24)
+                        warnings{end+1} = 'Some images were taken >30 min outside the dark-image range.'; %#ok<AGROW> 
+                    end
+                else
+                    % this condition has only one dark image
+                    elf_support_logmsg('              For ISO %d & exposure %.3f s, 1 dark image was found.\n', thisIso, thisExp);
+                    blackLevel(selLight, :) = dark.mean(selDark, :);
+                    srcs(selLight) = 2; % 2 means this black level comes from a single dark image
+    
+                    %% Warn if some of the real images were taken much earlier or later
+                    if any(abs(t(selLight)-t(selDark))>0.5/24)
+                        warnings{end+1} = 'Some images were taken >30 min before/after their dark-image.\n'; %#ok<AGROW> 
+                    end
                 end
             end
         end
