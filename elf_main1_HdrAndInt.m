@@ -37,17 +37,11 @@ sets            = elf_hdr_brackets(info);                             % determin
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
 % Also creates I_info.ori_grid_x1, I_info.ori_grid_y1 (and 2) which can be used to plot a 10 degree resolution grid onto the original image
 
-                    elf_support_logmsg('      Calculating projection constants...');
-
 [projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
-elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
-                    
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');
 
 %% Calculate black levels for all images (from calibration or dark images)
-                    elf_support_logmsg('      Calculating black levels / reading dark images ...\n');
-[blackLevels, blackLevelSource, blackWarnings] = elf_calibrate_blackLevels(info, imgformat);
-                    elf_support_logmsg('        done.\n');
+[infoSum.blackLevels, blackLevelSource, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgformat);
+elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
 
 %% Step 1: Unwarp images and calculate HDR scenes
 
@@ -72,7 +66,7 @@ for setnr = 1:size(sets, 1)
         im_raw                  = elf_io_imread(fname); % load the image (uint16)
 
         % Calibrate and calculate intensity confidence
-        [im_cal, conf, confFactors(:, i)] = elf_calibrate_abssens(im_raw, info(imnr), blackLevels(imnr, :)); 
+        [im_cal, conf, confFactors(:, i)] = elf_calibrate_abssens(im_raw, info(imnr), infoSum.blackLevels(imnr, :)); 
         
         % Umwarp image        
         im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);

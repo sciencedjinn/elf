@@ -3,8 +3,11 @@ function elf_plot_info(h, infoSum, name, nScenes, p)
 
     elfText   = {'\makebox[4in][c]{\fontsize{60}{40}\textbf{E}\fontsize{15}{40}\textbf{nvironmental} \fontsize{60}{40}\textbf{L}\fontsize{15}{40}\textbf{ight} \fontsize{60}{40}\textbf{F}\fontsize{15}{40}\textbf{ield}}'};
     nExposuresPerScene = length(infoSum.DateTimeOriginal)/nScenes;
-    if nExposuresPerScene==1, expText = 'exposure'; else, expText = 'exposures'; end
-    infoText1 = {name, sprintf('n = %d scenes, %d %s per scene', nScenes, nExposuresPerScene, expText)};
+    if isfield(infoSum, 'blackLevels')
+        infoText1 = {name, sprintf('n = %d scenes, %d exp. each, black = %.0f-%.0f', nScenes, nExposuresPerScene, min(infoSum.blackLevels(:)), max(infoSum.blackLevels(:)))};
+    else
+        infoText1 = {name, sprintf('n = %d scenes, %d exp. each', nScenes, nExposuresPerScene)};
+    end
     datefmt   = 'yyyy-mm-dd HH:MM';
     infoText2 = {sprintf('%s to', datestr(min(infoSum.DateTimeOriginal), datefmt)), sprintf('%s', datestr(max(infoSum.DateTimeOriginal), datefmt))};
 

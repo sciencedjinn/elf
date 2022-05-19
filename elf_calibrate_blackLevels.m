@@ -10,6 +10,8 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
 %
 % See also: elf_main3_summary, elf_info_collect
 
+                    elf_support_logmsg('      Calculating black levels / reading dark images ...\n');
+
     darkFolder = fullfile(fileparts(info(1).Filename), 'dark');
     exp        = arrayfun(@(x) x.DigitalCamera.ExposureTime, info);      % exposure time in seconds
     iso        = arrayfun(@(x) x.DigitalCamera.ISOSpeedRatings, info);   % ISO speed
@@ -62,7 +64,7 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
             elf_support_logmsg('            %s\n', warnings{i});
         end
     end
-
+                    elf_support_logmsg('        done.\n');
 end
 
 %% Sub functions
