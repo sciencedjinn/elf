@@ -14,7 +14,7 @@ function elf_main1_HdrAndInt(dataset, imgformat, verbose, rotation)
 elf_paths;
 
 %% Run parameters
-savejpgs        = false;                                              % save individual jpgs for each image? (takes extra time)
+saveJpgs        = false;                                              % save individual jpgs for each image? (takes extra time)
 
 %% check inputs
 if nargin < 4, rotation = 0; end
@@ -36,7 +36,6 @@ sets            = elf_hdr_brackets(info);                             % determin
 %% Set up projection constants
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
 % Also creates I_info.ori_grid_x1, I_info.ori_grid_y1 (and 2) which can be used to plot a 10 degree resolution grid onto the original image
-
 [projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
 
 %% Calculate black levels for all images (from calibration or dark images)
@@ -48,25 +47,25 @@ elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for
 tic; % Start taking time
 
 % Process one scene at a time
-for setnr = 1:size(sets, 1)
+for iSet = 1:size(sets, 1)
     clear im_filt res
     
-    setstart    = sets(setnr, 1);          % first image in this set
-    setend      = sets(setnr, 2);          % last image in this set
-    numims      = setend - setstart + 1;   % total number of images in this set
-    im_proj     = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
+    setStart    = sets(iSet, 1);          % first image in this set
+    setEnd      = sets(iSet, 2);          % last image in this set
+    nIms        = setEnd - setStart + 1;   % total number of images in this set
+    im_proj     = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, nIms);  % pre-allocate
 %     im_proj_cal = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
-    conf_proj   = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
-    confFactors = zeros(3, numims);        % pre-allocate
+    conf_proj   = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, nIms);  % pre-allocate
+    rawWhiteLevels = zeros(3, nIms);        % pre-allocate; raw white levels (after black subtraction)
     
-    for i = 1:numims % for each image in this set
+    for i = 1:nIms % for each image in this set
         % Load image        
-        imnr                    = setstart + i - 1;     % the number of this image
-        fname                   = info(imnr).Filename;  % full path to input image file
-        im_raw                  = elf_io_imread(fname); % load the image (uint16)
+        imNo                    = setStart + i - 1;     % the number of this image
+        fName                   = info(imNo).Filename;  % full path to input image file
+        im_raw                  = elf_io_imread(fName); % load the image (uint16)
 
         % Calibrate and calculate intensity confidence
-        [im_cal, conf, confFactors(:, i)] = elf_calibrate_abssens(im_raw, info(imnr), infoSum.blackLevels(imnr, :)); 
+        [im_cal, conf, rawWhiteLevels(:, i)] = elf_calibrate_abssens(im_raw, info(imNo), infoSum.blackLevels(imNo, :)); 
         
         % Umwarp image        
         im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
@@ -76,28 +75,28 @@ for setnr = 1:size(sets, 1)
     end
     
     % Sort images by EV
-    EV            = arrayfun(@(x) x.DigitalCamera.ExposureBiasValue, info(setstart:setend));
-    [~, imOrder]  = sort(EV);         % sorted EV (ascending), for HDR calculation
-    im_proj       = im_proj(:, :, :, imOrder);
-%     im_proj_cal   = im_proj_cal(:, :, :, imOrder);
-    conf_proj     = conf_proj(:, :, :, imOrder);
-    confFactors   = confFactors(:, imOrder);
+    EV               = arrayfun(@(x) x.DigitalCamera.ExposureBiasValue, info(setStart:setEnd));
+    [~, imOrder]     = sort(EV);         % sorted EV (ascending), for HDR calculation
+    im_proj          = im_proj(:, :, :, imOrder);
+%     im_proj_cal      = im_proj_cal(:, :, :, imOrder);
+    conf_proj        = conf_proj(:, :, :, imOrder);
+    rawWhiteLevels   = rawWhiteLevels(:, imOrder);
     
     % scale images to match middle exposure (creates a warning if scaling by more than 30%)
-    [im_proj, res.scalefac] = elf_hdr_scaleStack(im_proj, conf_proj, confFactors);
+    [im_proj, res.scalefac] = elf_hdr_scaleStack(im_proj, conf_proj, rawWhiteLevels);
     
     % Pass a figure number and an outputfilename here only if you want diagnostic pdfs.
     % However, MATLAB can't currently deal with saving these large figures, so no pdf will be created either way.
-    im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, confFactors); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod
-    im_HDR_cal  = elf_calibrate_spectral(im_HDR, info(setstart), para.ana.colourcalibtype); % apply spectral calibration
-    I           = elf_io_correctdng(im_HDR_cal, info(setstart), 'bright');
+    im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, rawWhiteLevels); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod
+    im_HDR_cal  = elf_calibrate_spectral(im_HDR, info(setStart), para.ana.colourcalibtype); % apply spectral calibration
+    I           = elf_io_correctdng(im_HDR_cal, info(setStart), 'bright');
 
     % Save HDR file as MAT and TIF.
     % TIF is not strictly necessary, but good diagnostic. 
     % Cost of saving it: ~300GB/6TB disk space, 2s per scene for calculation/saving = 6.7h extra for the current ~12000 scenes.
     % Cost of instead recalculating it in main2: 1.5s per scene for loading/converting = 5h extra ".
-    elf_io_readwrite(para, 'saveHDR_mat', sprintf('scene%03d', setnr), im_HDR_cal);
-    elf_io_readwrite(para, 'saveHDR_tif', sprintf('scene%03d', setnr), I);
+    elf_io_readwrite(para, 'saveHDR_mat', sprintf('scene%03d', iSet), im_HDR_cal);
+    elf_io_readwrite(para, 'saveHDR_tif', sprintf('scene%03d', iSet), I);
     
     %% Intensity descriptors %%
     %% Calculate intensity descriptors
@@ -106,36 +105,36 @@ for setnr = 1:size(sets, 1)
             error('Currently not supported!')
 %             [res.int, res.totalint] = elf_analysis_int(im_proj_cal, para.ele2, 'histcomb', para.ana.hdivn_int, para.ana.rangeperc, setnr==1, conf_proj, confFactors); % verbose output (analysis parameters) only for the first set
         case 'hdr' % Calculate histograms from HDR image (current default in para)
-            [res.int, res.totalint] = elf_analysis_int(im_HDR_cal, para.ele2, 'hdr', para.ana.hdivn_int, para.ana.rangeperc, setnr==1); % verbose output (analysis parameters) only for the first set
+            [res.int, res.totalint] = elf_analysis_int(im_HDR_cal, para.ele2, 'hdr', para.ana.hdivn_int, para.ana.rangeperc, iSet==1); % verbose output (analysis parameters) only for the first set
         otherwise
             error('Unknown intensity calculation method: %s', para.ana.intanalysistype);
     end
 
     %% Plot summary figure for this scene
-    datasetname = strrep(para.paths.dataset, '\', '\\'); % On PC, paths contain backslashes. Replace them by double backslashes to avoid a warning
-    nScenes = size(sets, 1);
-    name = sprintf('%s, scene #%d of %d', datasetname, setnr, nScenes);
-    h = elf_plot_intSummary(res, I, infoSum, name, nScenes);
+    dataSetName = strrep(para.paths.dataset, '\', '\\'); % On PC, paths contain backslashes. Replace them by double backslashes to avoid a warning
+    nScenes     = size(sets, 1);
+    name        = sprintf('%s, scene #%d of %d', dataSetName, iSet, nScenes);
+    h           = elf_plot_intSummary(res, I, infoSum, name, nScenes);
 
 %     info2 = sprintf('%d exposure, exposure m.a.d %.0f%% (max %.0f%%)', numims, 100*mean(abs(res.scalefac-1)), 100*max(abs(res.scalefac-1)) );
-    set(h.fh, 'Name', sprintf('Scene #%d of %d', setnr, nScenes));
+    set(h.fh, 'Name', sprintf('Scene #%d of %d', iSet, nScenes));
     drawnow;
     
     %% save output files
-    res.info  = info(setstart); % use the info of the first read image
-    scenename = sprintf('scene%03d', setnr);
-    elf_io_readwrite(para, 'saveres', scenename, res);
-    if savejpgs, elf_io_readwrite(para, 'saveivep_jpg', [scenename '_int'], h.fh); end    % small bottleneck
+    res.info  = info(setStart); % use the info of the first read image
+    sceneName = sprintf('scene%03d', iSet);
+    elf_io_readwrite(para, 'saveres', sceneName, res);
+    if saveJpgs, elf_io_readwrite(para, 'saveivep_jpg', [sceneName '_int'], h.fh); end    % small bottleneck
     
     
-                    if setnr == 1
+                    if iSet == 1
                         elf_support_logmsg('      Starting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
                         elf_support_logmsg('      Scene: 1..');
-                    elseif mod(setnr-1, 20)==0
+                    elseif mod(iSet-1, 20)==0
                         elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                        elf_support_logmsg('             %d..', setnr);
+                        elf_support_logmsg('             %d..', iSet);
                     else
-                        elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b%d..', setnr);
+                        elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b%d..', iSet);
                     end
 end
 
