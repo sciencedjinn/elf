@@ -1,4 +1,4 @@
-function elf_main1_HdrAndInt(dataset, imgformat, verbose, rotation)
+function elf_main1_HdrAndInt(dataSet, imgFormat, verbose, rotation)
 % ELF_MAIN1_HDRANDINT calibrates and unwarps all images in a data set, sorts them into
 % scenes, and calculates HDR representations of these scenes as mat for later contrast calculations and as tif for the mean image. 
 % Intensity descriptors are calculated for each exposure and then combined for scenes based on individual pixel reliability.
@@ -19,19 +19,19 @@ saveJpgs        = false;                                              % save ind
 %% check inputs
 if nargin < 4, rotation = 0; end
 if nargin < 3, verbose = false; end
-if nargin < 2 || isempty(imgformat), imgformat = '*.dng'; end
-if nargin < 1 || isempty(dataset), error('You have to provide a valid dataset name'); end 
+if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
+if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
                     elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
                     elf_support_logmsg('----- ELF Step 1: Calibration, HDR and Intensity -----\n')
 
 %% Set up paths and file names; read info, infosum and para, calculate sets
-para            = elf_para('', dataset, imgformat, verbose);
-info            = elf_info_collect(para.paths.datapath, imgformat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
+para            = elf_para('', dataSet, imgFormat, verbose);
+info            = elf_info_collect(para.paths.datapath, imgFormat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
 infoSum         = elf_info_summarise(info, verbose);                  % summarise EXIF information for this dataset. This will be saved for later use below
-infoSum.linims  = strcmp(imgformat, '*.dng');                         % if linear images are used, correct for that during plotting
+infoSum.linims  = strcmp(imgFormat, '*.dng');                         % if linear images are used, correct for that during plotting
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
-                    elf_support_logmsg('      Processing %d scenes in environment %s.\n', size(sets, 1), dataset);
+                    elf_support_logmsg('      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
 
 %% Set up projection constants
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
@@ -39,7 +39,7 @@ sets            = elf_hdr_brackets(info);                             % determin
 [projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
 
 %% Calculate black levels for all images (from calibration or dark images)
-[infoSum.blackLevels, blackLevelSource, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgformat);
+[infoSum.blackLevels, blackLevelSource, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
 elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
 
 %% Step 1: Unwarp images and calculate HDR scenes
@@ -139,7 +139,7 @@ for iSet = 1:size(sets, 1)
 end
 
                     elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');    
-                    elf_support_logmsg('      Summary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataset); % write confirmation to log
+                    elf_support_logmsg('      Summary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
                     elf_support_logmsg('      Summary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
 
 
