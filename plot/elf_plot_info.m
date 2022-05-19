@@ -4,7 +4,11 @@ function elf_plot_info(h, infoSum, name, nScenes, p)
     elfText   = {'\makebox[4in][c]{\fontsize{60}{40}\textbf{E}\fontsize{15}{40}\textbf{nvironmental} \fontsize{60}{40}\textbf{L}\fontsize{15}{40}\textbf{ight} \fontsize{60}{40}\textbf{F}\fontsize{15}{40}\textbf{ield}}'};
     nExposuresPerScene = length(infoSum.DateTimeOriginal)/nScenes;
     if isfield(infoSum, 'blackLevels')
-        infoText1 = {name, sprintf('n = %d scenes, %d exp. each, black = %.0f-%.0f', nScenes, nExposuresPerScene, min(infoSum.blackLevels(:)), max(infoSum.blackLevels(:)))};
+        if ~isempty(infoSum.blackWarnings)        
+            infoText1 = {name, sprintf('n = %d scenes, %d exp. each, black = %.0f-%.0f, {{\\color{red}%d WARNING(S)!}}', nScenes, nExposuresPerScene, min(infoSum.blackLevels(:)), max(infoSum.blackLevels(:)), length(infoSum.blackWarnings))};
+        else
+            infoText1 = {name, sprintf('n = %d scenes, %d exp. each, black = %.0f-%.0f', nScenes, nExposuresPerScene, min(infoSum.blackLevels(:)), max(infoSum.blackLevels(:)))};
+        end
     else
         infoText1 = {name, sprintf('n = %d scenes, %d exp. each', nScenes, nExposuresPerScene)};
     end
