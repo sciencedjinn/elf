@@ -3,12 +3,7 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
 %
 % Inputs:
 %   info - 1 x n info structure, containing the exif information of the raw image files (created by elf_info_collect)
-% Outputs:
-%   sets - m x 2 double, containing the numbers of the first and last image of each bracket
-% 
-% Call sequence: elf -> elf_main3_summary -> elf_hdr_brackets
-%
-% See also: elf_main3_summary, elf_info_collect
+
 
                     elf_support_logmsg('      Calculating black levels / reading dark images ...\n');
 
