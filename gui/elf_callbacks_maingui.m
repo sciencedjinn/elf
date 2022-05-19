@@ -29,7 +29,6 @@ else
         calcmean    = true;
 
         % get range if button callback
-    
         rangebox = findobj('parent', get(src, 'parent'), 'tag', 'maingui_range');
         rangestr = get(rangebox, 'string');
         if ismember(rangestr, {'', ' ', 'all', 'full', '1:end', ':'})
