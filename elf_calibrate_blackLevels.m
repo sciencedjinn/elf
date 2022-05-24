@@ -4,7 +4,6 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
 % Inputs:
 %   info - 1 x n info structure, containing the exif information of the raw image files (created by elf_info_collect)
 
-
                     elf_support_logmsg('      Calculating black levels / reading dark images ...\n');
 
     darkFolder = fullfile(fileparts(info(1).Filename), 'dark');
