@@ -42,8 +42,13 @@ for i = 1:size(status, 1)
         corr    = strcmp(exts{i}, '.dng'); % if these are dng images, perform colour and gamma correction
     end
     [I, compressed]  = elf_io_imread(fname, true); % pass over a CompressedDNG error here
-    if compressed
-        status(i, 1) = 2;
+    switch compressed
+        case ''
+            % all good
+        case 'ELF:io:dngCompressed'
+            status(i, 1) = 2;
+        otherwise
+            status(i, 1) = 4;
     end
     scale   = para.gui.smallsize/size(I, 2);
     I       = imresize(I, scale);
