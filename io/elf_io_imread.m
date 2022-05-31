@@ -34,6 +34,17 @@ switch lower(ext(2:end))
                     errormsg = sprintf('A file in dataset %s appears to be a compressed DNG. Please consult the manual on how to properly convert images to DNG using "Adobe DNG Converter"', datasetName);
                     error('ELF:io:dngCompressed', errormsg); %#ok<SPERR>
                 end
+            elseif strcmp(err.identifier, 'ELF:io:LinearizationFailed')
+                [~, datasetName] = fileparts(fileparts(fullfilename));
+                compressed = true;
+                if ignoreCompressed
+                    errormsg = sprintf('The camera used in dataset \\bf\\it %s \\rm has a linearisation table, but applying it failed.', elf_support_removeTex(datasetName));
+                    uiwait(errordlg(errormsg, 'LinearisationTable', struct('Interpreter', 'tex', 'WindowStyle', 'modal')));
+                    im = imread(fullfile('static', 'no_img.jpg'));
+                else
+                    errormsg = sprintf('The camera used in dataset %s has a linearisation table, but applying it failed.', datasetName);
+                    error('ELF:io:LinearizationFailed', errormsg); %#ok<SPERR>
+                end
             else
                 rethrow(err);
             end
