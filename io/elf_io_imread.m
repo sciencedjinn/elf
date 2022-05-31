@@ -1,4 +1,4 @@
-function [im, compressed] = elf_io_imread(fullfilename, ignoreCompressed)
+function [im, errorOccurred] = elf_io_imread(fullfilename, ignoreErrors)
 % ELF_IO_IMREAD reads image files of several different types
 %   Currently works for tif, jpg, and dng, and should be ok for most other
 %   non-raw formats. For raw formats, linearisation and demosaicing are
@@ -12,10 +12,10 @@ function [im, compressed] = elf_io_imread(fullfilename, ignoreCompressed)
 %
 % See also elf_info_load, elf_io_loaddng.
 
-if nargin < 2, ignoreCompressed = false; end % throw an error if compressed DNGs are present
+if nargin < 2, ignoreErrors = false; end % throw an error if any error occurs (set to true to continue to next dataset)
 
 [~,~,ext] = fileparts(fullfilename); % using info.Format does not work for raw files, as they are usually tif format
-compressed = false;
+errorOccurred = '';
 switch lower(ext(2:end))
     case {'tif', 'tiff', 'jpg', 'jpeg', 'bmp', 'gif', 'png', 'ppm'}
         im = imread(fullfilename);
@@ -23,10 +23,10 @@ switch lower(ext(2:end))
         try
             im = elf_io_loaddng(fullfilename);
         catch err
+            [~, datasetName] = fileparts(fileparts(fullfilename));
+            errorOccurred = err.identifier;
             if strcmp(err.identifier, 'ELF:io:dngCompressed')
-                [~, datasetName] = fileparts(fileparts(fullfilename));
-                compressed = true;
-                if ignoreCompressed
+                if ignoreErrors
                     errormsg = sprintf('A file in dataset \\bf\\it %s \\rm appears to be a compressed DNG. Please consult the manual on how to properly convert images to DNG using "Adobe DNG Converter"', elf_support_removeTex(datasetName));
                     uiwait(errordlg(errormsg, 'Compressed DNG', struct('Interpreter', 'tex', 'WindowStyle', 'modal')));
                     im = imread(fullfile('static', 'no_img.jpg'));
@@ -35,9 +35,7 @@ switch lower(ext(2:end))
                     error('ELF:io:dngCompressed', errormsg); %#ok<SPERR>
                 end
             elseif strcmp(err.identifier, 'ELF:io:LinearizationFailed')
-                [~, datasetName] = fileparts(fileparts(fullfilename));
-                compressed = true;
-                if ignoreCompressed
+                if ignoreErrors
                     errormsg = sprintf('The camera used in dataset \\bf\\it %s \\rm has a linearisation table, but applying it failed.', elf_support_removeTex(datasetName));
                     uiwait(errordlg(errormsg, 'LinearisationTable', struct('Interpreter', 'tex', 'WindowStyle', 'modal')));
                     im = imread(fullfile('static', 'no_img.jpg'));
@@ -46,7 +44,13 @@ switch lower(ext(2:end))
                     error('ELF:io:LinearizationFailed', errormsg); %#ok<SPERR>
                 end
             else
-                rethrow(err);
+                if ignoreErrors
+                    errormsg = sprintf('While processing dataset \\bf\\it %s \\rm, an error occurred: %s.', elf_support_removeTex(datasetName), err.message);
+                    uiwait(errordlg(errormsg, 'Error', struct('Interpreter', 'tex', 'WindowStyle', 'modal')));
+                    im = imread(fullfile('static', 'no_img.jpg'));
+                else
+                    rethrow(err);
+                end
             end
         end
     case 'nef'
