@@ -7,3 +7,4 @@ modules
 *.asv
 obs
 beta
+config/*.env

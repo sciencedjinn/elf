@@ -6,7 +6,7 @@ function elf_main1_HdrAndInt(dataset, imgformat, verbose, rotation)
 % Uses: elf_paths, elf_support_logmsg, elf_para, elf_info_collect, 
 %       elf_info_summarise, elf_hdr_brackets, elf_project_image, 
 %       elf_io_readwrite, elf_hdr_calcHDR, elf_io_correctdng, elf_io_imread
-%       elf_analysis_int, elf_support_formatA4l, elf_plot_intsummary
+%       elf_analysis_int, elf_support_formatA4l
 %
 % Loads files: DNG image files in data folder
 % Saves files: HDR image files in scene subfolder, *.mat files in scenes subfolder, per-scene intensity results in mat folder
@@ -28,8 +28,8 @@ if nargin < 1 || isempty(dataset), error('You have to provide a valid dataset na
 %% Set up paths and file names; read info, infosum and para, calculate sets
 para            = elf_para('', dataset, imgformat, verbose);
 info            = elf_info_collect(para.paths.datapath, imgformat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
-infosum         = elf_info_summarise(info, verbose);                  % summarise EXIF information for this dataset. This will be saved for later use below
-infosum.linims  = strcmp(imgformat, '*.dng');                         % if linear images are used, correct for that during plotting
+infoSum         = elf_info_summarise(info, verbose);                  % summarise EXIF information for this dataset. This will be saved for later use below
+infoSum.linims  = strcmp(imgformat, '*.dng');                         % if linear images are used, correct for that during plotting
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
                     elf_support_logmsg('      Processing %d scenes in environment %s.\n', size(sets, 1), dataset);
 
@@ -39,8 +39,8 @@ sets            = elf_hdr_brackets(info);                             % determin
 
                     elf_support_logmsg('      Calculating projection constants...');
 
-[projection_ind, infosum] = elf_project_image(infosum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
-elf_io_readwrite(para, 'saveinfosum', [], infosum); % saves infosum AND para for use in later stages
+[projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
+elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
                     
                     elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');
 
@@ -55,9 +55,9 @@ for setnr = 1:size(sets, 1)
     setstart    = sets(setnr, 1);          % first image in this set
     setend      = sets(setnr, 2);          % last image in this set
     numims      = setend - setstart + 1;   % total number of images in this set
-    im_proj     = zeros(length(para.ele), length(para.azi), infosum.SamplesPerPixel, numims);  % pre-allocate
-    im_proj_cal = zeros(length(para.ele), length(para.azi), infosum.SamplesPerPixel, numims);  % pre-allocate
-    conf_proj   = zeros(length(para.ele), length(para.azi), infosum.SamplesPerPixel, numims);  % pre-allocate
+    im_proj     = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
+    im_proj_cal = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
+    conf_proj   = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
     conffactors = zeros(4, numims);        % pre-allocate
     
     for i = 1:numims % for each image in this set
@@ -70,10 +70,10 @@ for setnr = 1:size(sets, 1)
         [im_cal, conf, conffactors(:, i)] = elf_calibrate_abssens(im_raw, info(imnr)); 
         
         % Umwarp image        
-        im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infosum.SamplesPerPixel]);
+        im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
         im_proj_cal(:, :, :, i) = elf_calibrate_spectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
 
-        conf_proj(:, :, :, i)   = elf_project_apply(conf, projection_ind, [length(para.ele) length(para.azi) infosum.SamplesPerPixel]);
+        conf_proj(:, :, :, i)   = elf_project_apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
     end
     
     % Sort images by EV
@@ -112,18 +112,20 @@ for setnr = 1:size(sets, 1)
     end
 
     %% Plot summary figure for this scene
-    fh = elf_support_formatA4l(4); clf;
     datasetname = strrep(para.paths.dataset, '\', '\\'); % On PC, paths contain backslashes. Replace them by double backslashes to avoid a warning
-    elf_plot_intsummary(para, res, I, infosum, fh, sprintf('%s, scene #%d of %d', datasetname, setnr, size(sets, 1)), ...
-        sprintf('%d exposure, exposure m.a.d %.0f%% (max %.0f%%)', numims, 100*mean(abs(res.scalefac-1)), 100*max(abs(res.scalefac-1)) )); % res.scalefac are the factors to scale each image to the mean exposure
-    set(fh, 'Name', sprintf('Scene #%d of %d', setnr, size(sets, 1)));
+    nScenes = size(sets, 1);
+    name = sprintf('%s, scene #%d of %d', datasetname, setnr, nScenes);
+    h = elf_plot_intSummary(res, I, infoSum, name, nScenes);
+
+%     info2 = sprintf('%d exposure, exposure m.a.d %.0f%% (max %.0f%%)', numims, 100*mean(abs(res.scalefac-1)), 100*max(abs(res.scalefac-1)) );
+    set(h.fh, 'Name', sprintf('Scene #%d of %d', setnr, nScenes));
     drawnow;
     
     %% save output files
     res.info  = info(setstart); % use the info of the first read image
     scenename = sprintf('scene%03d', setnr);
     elf_io_readwrite(para, 'saveres', scenename, res);
-    if savejpgs, elf_io_readwrite(para, 'saveivep_jpg', [scenename '_int'], fh); end    % small bottleneck
+    if savejpgs, elf_io_readwrite(para, 'saveivep_jpg', [scenename '_int'], h.fh); end    % small bottleneck
     
     
                     if setnr == 1

@@ -81,7 +81,7 @@ switch action
         para.paths.fname_meanivep_pdf = fullfile(para.paths.outputfolder, [ds '_meanint.pdf']);
         para.paths.fname_meanivep_jpg = fullfile(para.paths.outputfolder_pub, [ds '_meanint.jpg']);
         
-        para.paths.fname_stats        = fullfile(para.paths.outputfolder, [ds '_stats.xlsx']);
+        para.paths.fname_stats        = fullfile(para.paths.outputfolder, [ds '_stats.csv']);
         para.paths.fname_meanres      = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_meanres.mat']);
         para.paths.fname_meanres_int  = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_meanres_int.mat']);
         para.paths.fname_collres      = fullfile(para.paths.outputfolder, [ds '_collres.mat']);
@@ -424,10 +424,9 @@ end % main
 %% sub functions
 function sub_savepdf(fh, filename)
     sub_hideui(fh, false); % hide user interface for plotting
-%     orient(fh, ori);
-%     set(fh, 'Units', 'centimeters');
-%     pos = get(fh,'Position');
-%     set(fh, 'PaperPositionMode', 'Auto', 'PaperUnits', 'centimeters', 'PaperSize', [pos(3), pos(4)]);
+    set(fh, 'Units', 'centimeters');
+    pos = get(fh,'Position');
+    set(fh, 'PaperPositionMode', 'Auto', 'PaperUnits', 'centimeters', 'PaperSize', [pos(3), pos(4)]);
 
     if verLessThan('matlab', '8.4')
         print(sprintf('-f%d', fh), filename, '-r600', '-dpdf');  % save the pdf
@@ -439,9 +438,9 @@ end
 
 function sub_savejpg(fh, filename)
     sub_hideui(fh, false); % hide user interface for plotting
-%     set(fh, 'Units', 'centimeters');
-%     pos = get(fh,'Position');
-%     set(fh, 'PaperPositionMode', 'Auto', 'PaperUnits', 'centimeters', 'PaperSize', [pos(4), pos(3)]);
+    set(fh, 'Units', 'centimeters');
+    pos = get(fh,'Position');
+    set(fh, 'PaperPositionMode', 'Auto', 'PaperUnits', 'centimeters', 'PaperSize', [pos(4), pos(3)]);
 
     if verLessThan('matlab', '8.4')
         print(sprintf('-f%d', fh), filename, '-djpeg');  % save the jpg

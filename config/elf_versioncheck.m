@@ -30,7 +30,7 @@ if mayusegpu
         usegpu = license('test', 'Distrib_Computing_Toolbox') && gpuDeviceCount>0;
     catch me
         usegpu = false;
-        warning('No GPU computation possible, because an error occured while trying to detect GPUs: \n %s', me.message);
+        warning('ELF:GpuWarning', 'No GPU computation possible, because an error occured while trying to detect GPUs: \n %s', me.message);
     end
 else 
     usegpu = false;

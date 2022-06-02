@@ -1,5 +1,5 @@
-function hi = elf_plot_image(im, I_info, h, proj, correct)
-% elf_plot_image(im, I_info, h, proj, correct)
+function hi = elf_plot_image(im, I_info, h, proj, correct, plotPara)
+% elf_plot_image(im, I_info, h, proj, correct, plotPara)
 % displays an image of any given projection with appropriate axis labels
 %
 % im        - image to plot (can be of any image format)
@@ -26,7 +26,8 @@ function hi = elf_plot_image(im, I_info, h, proj, correct)
 % Toolboxes: IP
 
 %% Check inputs, set defaults
-if nargin < 5, correct = false; end
+if nargin<6, plotPara = []; end
+if nargin<5, correct = false; end
 if nargin<4 || isempty(proj)
     proj = 'undefined';
 end
@@ -159,22 +160,52 @@ switch proj
         [~, ypos] = ismember([10 10 -10 -10], ele); 
         plot(ha, [1 x;1 x]', reshape(ypos, [2 2]), 'k--');
         
-        %calculate x-ticks and y-ticks
+        % calculate x-ticks and y-ticks
         [ism, xpos] = ismember(-90:30:90, azi); 
         xts = sort(xpos(ism)); % XTick sorted
         [ism, ypos] = ismember(-90:30:90, ele); 
         yts = sort(ypos(ism)); % YTick sorted
-        set(ha, 'XTick', xts, 'XTickLabel', num2str(azi(xts)'), 'YTick', yts, 'YTickLabel', num2str(ele(yts)'), 'fontsize', 8);
+        set(ha, 'XTick', [], 'XTickLabel', [], 'YTick', yts, 'YTickLabel', num2str(ele(yts)'));
 
         % set labels and position
-        xlabel(ha, 'azimuth (\circ)', 'fontweight', 'bold', 'fontsize', 9);
-        ylabel(ha, 'elevation (\circ)', 'fontweight', 'bold', 'fontsize', 9);
+        ylabel(ha, 'elevation (\circ)', 'fontweight', 'bold');
         switch handletype
             case {'figure', 'uipanel'}
                 b = get(ha, 'TightInset');
                 set(ha, 'Position', [0+b(1) 0+b(2) 1-b(1)-b(3) 1-b(2)-b(4)]);
         end
+
+    case 'equirectangular_summary_squished' 
+        azi = I_info.proj_azi; % This information should have been added during projection
+        ele = I_info.proj_ele; 
+
+        % plot grid
+        hold(ha, 'on');
+        x = length(azi);
+        [~, ypos] = ismember([60 60 30 30 0 0 -30 -30 -60 -60], ele); 
+        plot(ha, [1 x;1 x;1 x;1 x;1 x]', reshape(ypos, [2 5]), 'k:');
+        if ~isempty(plotPara) && plotPara.showElevationZones
+            [~, ypos] = ismember([10 10 -10 -10], ele); 
+            plot(ha, [1 x;1 x]', reshape(ypos, [2 2]), 'k--');
+        end
         
+        % calculate x-ticks and y-ticks
+        [ism, xpos] = ismember(-90:30:90, azi); 
+        xts = sort(xpos(ism)); % XTick sorted
+        [ism, ypos] = ismember(-90:30:90, ele); 
+        yts = sort(ypos(ism)); % YTick sorted
+        labelFS = round(plotPara.axesFontsize*plotPara.corrFac);
+        set(ha, 'XTick', [], 'XTickLabel', [], 'YTick', yts, 'YTickLabel', num2str(ele(yts)'), 'fontsize', labelFS);
+
+        % set labels and position
+        ylabel(ha, 'elevation (\circ)', 'fontweight', 'bold');
+        switch handletype
+            case {'figure', 'uipanel'}
+                b = get(ha, 'TightInset');
+                set(ha, 'Position', [0+b(1) 0+b(2) 1-b(1)-b(3) 1-b(2)-b(4)]);
+        end
+        set(ha, 'DataAspectRatioMode', 'auto')
+
     case 'zone'
         % Display zones (hack!)
         hold(ha, 'on');

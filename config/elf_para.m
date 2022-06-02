@@ -89,31 +89,8 @@ para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual hist
                                         % 'hdr'      - Calculate histograms from the HDR image.
 para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'validranges', 'allvalid2', 'noise'                               
                        
-%% plotting constants
-% Some labels for the ELF plot
-para.plot.channames         = {'Luminance', 'R/G', 'G/B', 'R/B'};
-para.plot.scalenames        = {'', ''};%{'fine', 'coarse'};
-para.plot.hwnames           = {'', ''};%{'1\circ', '10\circ'};
-para.plot.typenames         = {'lum', 'rg', 'gb', 'rb'};  % this is what the types are called in the variable res
-para.plot.binnames          = {'Down:', 'Horizon:', 'Up:'};
-para.plot.binranges         = {'-90\circ - -10\circ', '-10\circ - +10\circ', '+10\circ +90\circ'};
-
-para.plot.channelscaling    = [0.5 2 2 2];  % Scales for contrast ellipses in the three contrast channels. E.g., doubling the first number will double the size of all luminance contrast ellipses 
-
-para.plot.channeldist       = 60;        % distance between plots for different contrast channels, in pixels
-para.plot.scaledist         = 0;%40;     % distance between plots for different scales, in pixels
-para.plot.plothists         = false;     % if this is true, contrast histograms will be plotted rather than contrast ellipses
-
-para.plot.intmeantype       = 'median';  % determines type of statistics used for intensity plots; can be 'mean' (to plot min/mean-std/mean/mean+std/max) or 'median' (to plot 5th/25th/50th/75th/95th percentiles)
-para.plot.inttotalmeantype  = 'hist';    % determines type of statistics used for overall intensity plots; can be 'mean'/'median'/'hist'
-para.plot.datasetmeantype   = 'logmean'; % determines how scenes are averaged across a dataset; can be 'mean'/'median'/'logmean'
-para.plot.intreflevels      = 10.^[12 14 16 18 20]/300; % Reference levels to plot in intensity plots ...
-para.plot.intrefnames       = {'Starlight', 'Moonlight', 'Mid dusk', 'Overcast', 'Sunlight'}; % ... and their labels
-para.plot.intchannelcolours = {[1 0 0], [0.2 0.85 0], [0 0 1], [0 0 0]}; % plotting colours for the four channels R, G, B, BW (as normalised RGB triplets)
-para.plot.contchannelcolours = {[0 0 0], [1 0.6 0.2], [0 1 0.8], [1 0 1]};%[0.4667 0.6745 0.1882], [1 0 1]}; % plotting colours for the channel comparisons (luminance, RG, GB, RB)
-
-
-
+%% plotting parameters (will be loaded again at plotting time)
+para.plot = elf_plottingPara;
 
 
 

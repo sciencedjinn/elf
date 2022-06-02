@@ -19,17 +19,16 @@ switch get(src, 'tag')
         % probably a RGB/BW button
         if regexp(get(src, 'tag'), 'fig\w*_gui_\w*')
             % determine figure number
-            C = textscan(get(src, 'tag'), 'fig%d_gui_%s');
-            fignum = C{1};
-            buttontype = C{2};
+            C = strsplit(get(src, 'tag'), '_');
+            figID = C{1};
 
             switch get(src, 'Value')
                 case 1 % switched on
                     % set all others to off
-                    set(findobj('tag', sprintf('fig%d_gui_R', fignum)), 'Value', 0);
-                    set(findobj('tag', sprintf('fig%d_gui_G', fignum)), 'Value', 0);
-                    set(findobj('tag', sprintf('fig%d_gui_B', fignum)), 'Value', 0);
-                    set(findobj('tag', sprintf('fig%d_gui_BW', fignum)), 'Value', 0);
+                    set(findobj('tag', sprintf('%s_gui_R', figID)), 'Value', 0);
+                    set(findobj('tag', sprintf('%s_gui_G', figID)), 'Value', 0);
+                    set(findobj('tag', sprintf('%s_gui_B', figID)), 'Value', 0);
+                    set(findobj('tag', sprintf('%s_gui_BW', figID)), 'Value', 0);
                     set(src, 'Value', 1);
                 case 0 % switched off, don't allow it
                     set(src, 'Value', 1);
@@ -37,7 +36,7 @@ switch get(src, 'tag')
                 otherwise
                     error('Internal error: Unknown Value');
             end
-            elf_plot_int_setvis(fignum);
+            elf_plot_int_setvis(figID);
 
         else
             %ignore for now
