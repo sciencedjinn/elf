@@ -102,7 +102,7 @@ else
     
     if refresh
         % update gui visibility
-        status = elf_checkdata(para);
+        status = elf_checkdata(para, false);
         elf_maingui_visibility(gui, status);
     end
     if ~ismenu
