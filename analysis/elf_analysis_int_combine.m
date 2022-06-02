@@ -1,4 +1,8 @@
 function imhist_comb = elf_analysis_int_combine(im, conf, confmult, confsat)
+
+%%%% THIS IS CURRENTLY  NOT FUNCTIONAL AND HAS TO BE ADAPTED TO THE NEW CONFMULT VALUES
+error('Currently not supported!')
+
 % ELF_ANALYSIS_INT_COMBINE is an intensity analysis helper function, only used by elf_analysis_int when type is "fromhist" (not the current default)
 % Combines the values in im across 4th dimension, based on confidence/noise levels
 %

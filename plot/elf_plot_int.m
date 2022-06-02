@@ -71,20 +71,24 @@ set(h.ahMainOverlay, 'Layer', 'top', 'color', 'none');
 
 %% MAIN PLOT: axes limits and labels
 % calculate good x-axis limits
-
-cmin = log10(min(imean(imean>0)));
-cmax = log10(max(imean));
-c = mean([cmin cmax]); % Use the log mean of the min and max of the black (last channel) me(di)an curve as x-centre
-
-axLims = [10^(c-defWidth/2) 10^(c+defWidth/2) -90 90]; % set to a default width of 3 log units
-
-axis(h.ahMainPlot, axLims);
-set(h.ahMainPlot, 'XScale', 'log', 'YTick', [], 'XTick', []);
-
-axLims2 = [c-defWidth/2 c+defWidth/2 -90 90];
-axis(h.ahTicks, axLims2);
-set(h.ahTicks, 'YTick', [], 'XTick', floor(c-defWidth/2):ceil(c+defWidth/2), ...
-    'Visible', 'on', 'Box', 'on', 'XMinorTick', 'on', 'layer', 'top', 'color', 'none');    
+if ~any(imean>0)
+    warning('All radiance values are below 0. The image is severely underexposed!');
+    axLims = axis(h.ahMainPlot);
+else
+    cmin = log10(min(imean(imean>0)));
+    cmax = log10(max(imean));
+    c = mean([cmin cmax]); % Use the log mean of the min and max of the black (last channel) me(di)an curve as x-centre
+    
+    axLims = [10^(c-defWidth/2) 10^(c+defWidth/2) -90 90]; % set to a default width of 3 log units
+    
+    axis(h.ahMainPlot, axLims);
+    set(h.ahMainPlot, 'XScale', 'log');
+    axLims2 = [c-defWidth/2 c+defWidth/2 -90 90];
+    axis(h.ahTicks, axLims2);
+    set(h.ahTicks, 'YTick', [], 'XTick', floor(c-defWidth/2):ceil(c+defWidth/2), ...
+        'Visible', 'on', 'Box', 'on', 'XMinorTick', 'on', 'layer', 'top', 'color', 'none');    
+end
+set(h.ahMainPlot, 'YTick', [], 'XTick', []);
 xlabel(h.ahTicks, xLabMain, 'fontweight', 'bold');
 
 %% MAIN PLOT: radiance reference levels
