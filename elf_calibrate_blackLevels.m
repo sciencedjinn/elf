@@ -181,12 +181,12 @@ function interpDarkValues = sub_interp(tDarkUnique, darkValuesUnique, tLight)
     end
 
     % Diagnostics (only activate for debugging)
-    elf_support_logmsg('              Last dark image was taken %d minutes after the first one.\n', round((tMax-tMin)*24*60));
-    elf_support_logmsg('              Bright images were taken between %d and %d minutes after the first dark image.\n', round((min(tLight)-tMin)*24*60), round((max(tLight)-tMin)*24*60));
-    elf_support_logmsg('              %d bright image(s) before the first dark image.\n', nnz(selMin));
-    elf_support_logmsg('              %d bright image(s) in between dark images.\n', nnz(selWithin));
-    elf_support_logmsg('              %d bright image(s) after the last dark image.\n', nnz(selMax));
-    figure; 
-    plot(24*60*(tDarkUnique-tMin), darkValuesUnique(:, 1), 'ro', 24*60*(tDarkUnique-tMin), darkValuesUnique(:, 2), 'go', 24*60*(tDarkUnique-tMin), darkValuesUnique(:, 3), 'bo',...
-        24*60*(tLight-tMin), interpDarkValues(:, 1), 'rx', 24*60*(tLight-tMin), interpDarkValues(:, 2), 'gx', 24*60*(tLight-tMin), interpDarkValues(:, 3), 'bx');
+%     elf_support_logmsg('              Last dark image was taken %d minutes after the first one.\n', round((tMax-tMin)*24*60));
+%     elf_support_logmsg('              Bright images were taken between %d and %d minutes after the first dark image.\n', round((min(tLight)-tMin)*24*60), round((max(tLight)-tMin)*24*60));
+%     elf_support_logmsg('              %d bright image(s) before the first dark image.\n', nnz(selMin));
+%     elf_support_logmsg('              %d bright image(s) in between dark images.\n', nnz(selWithin));
+%     elf_support_logmsg('              %d bright image(s) after the last dark image.\n', nnz(selMax));
+%     figure; 
+%     plot(24*60*(tDarkUnique-tMin), darkValuesUnique(:, 1), 'ro', 24*60*(tDarkUnique-tMin), darkValuesUnique(:, 2), 'go', 24*60*(tDarkUnique-tMin), darkValuesUnique(:, 3), 'bo',...
+%         24*60*(tLight-tMin), interpDarkValues(:, 1), 'rx', 24*60*(tLight-tMin), interpDarkValues(:, 2), 'gx', 24*60*(tLight-tMin), interpDarkValues(:, 3), 'bx');
 end
