@@ -28,7 +28,7 @@ if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset na
 %% Set up paths and file names; read info, infosum and para, calculate sets
 para            = elf_para('', dataSet, imgFormat, verbose);
 info            = elf_info_collect(para.paths.datapath, imgFormat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
-infoSum         = elf_info_summarise(info, verbose);                  % summarise EXIF information for this dataset. This will be saved for later use below
+infoSum         = elf_info_summarise(info, false);                  % summarise EXIF information for this dataset. This will be saved for later use below
 infoSum.linims  = strcmp(imgFormat, '*.dng');                         % if linear images are used, correct for that during plotting
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
                     elf_support_logmsg('      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
@@ -69,7 +69,7 @@ for iSet = 1:size(sets, 1)
         
         % Umwarp image        
         im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
-%         im_proj_cal(:, :, :, i) = elf_calibrate_spectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
+        %         im_proj_cal(:, :, :, i) = elf_calibrate_spectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
 
         conf_proj(:, :, :, i)   = elf_project_apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
     end

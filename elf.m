@@ -15,8 +15,10 @@ function elf(varargin)
 useoldfolder = true;
 verbose = false;
 
-v = 1.1;
-fprintf('Starting ELF %.2f\n', v);
+vMajor = 1;
+vMinor = 1;
+vPatch = 0;
+fprintf('Starting ELF %d.%d.%d\n', vMajor, vMinor, vPatch);
 
 %% parameters
 for i = 1:length(varargin)

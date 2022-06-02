@@ -1,4 +1,4 @@
-function sets = elf_hdr_brackets(rawinfo)
+function sets = elf_hdr_brackets(rawinfo, verbose)
 % ELF_HDR_BRACKETS detects the bracketing sets in the input images.
 % The function assumes that bracketing sets are CONSECUTIVE images (not necessarily consecutively NUMBERED images) 
 % with a pattern of exposure bias values that repeats throughout the set. If a brackets.info file exists in the
@@ -12,6 +12,8 @@ function sets = elf_hdr_brackets(rawinfo)
 % Call sequence: elf -> elf_main3_summary -> elf_hdr_brackets
 %
 % See also: elf_main3_summary, elf_info_collect
+
+if nargin<2, verbose = true; end
 
 %% Step 0: If brackets.info exist in the folder, read it and use that information
 bracketfile = fullfile(fileparts(rawinfo(1).Filename), 'brackets.info');
@@ -45,12 +47,17 @@ while putative_rep <= 11 && isnan(bracketing_rep)
     putative_rep = putative_rep + 1;
 end
 
-if bracketing_rep == 1
-    warning('ELF:hdr:NoBrackets', 'No exposure brackets were detected. If the brackets were set manually, you need a brackets.info file!!!');
+if bracketing_rep == 1 && length(ev)>1 % if there is no ev-variation, and more than 1 image, warn
+    if verbose
+        [~, setName] = fileparts(fileparts(rawinfo(1).Filename));
+        warning('ELF:hdr:NoBrackets', 'No exposure brackets were detected for environment %s. If the brackets were set manually, you need a brackets.info file!!!', setName);
+    end
 end
 
 if isnan(bracketing_rep)
-    warning('No consistent exposure pattern could be found. Images will be assumed to be independent (i.e. no bracketing).');
+    if verbose
+        warning('No consistent exposure pattern could be found. Images will be assumed to be independent (i.e. no bracketing).');
+    end
     sets = [(1:length(rawinfo))' (1:length(rawinfo))'];
 else
     sets = [locations' [locations(2:end)' - 1; length(rawinfo)]];

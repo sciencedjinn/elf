@@ -139,7 +139,7 @@ while i <= length(datasets)
         continue; % if there are no usable images, continue to the next potential dataset
     else
         info        = elf_info_collect(thisfolder, dominantext{i});   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
-        brackets    = elf_hdr_brackets(info);
+        brackets    = elf_hdr_brackets(info, verbose);
         
         scenefolder = fullfile(thisfolder, para.paths.scenefolder);
         
