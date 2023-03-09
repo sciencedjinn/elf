@@ -34,8 +34,6 @@ if ~isempty(h.ahRangePlot), hold(h.ahRangePlot, 'on'); end
 s = warning('off', 'MATLAB:plot:IgnoreImaginaryXYPart');
 % TODO: When this warning occurs, it indicates saturated pixels. A separate warning could be issued.
 
-
-
 %% MAIN PLOT: for each channel, plots the means
 for ch = 1:nch
     if plotPara.mainChannelsActive{ch}
@@ -46,7 +44,7 @@ for ch = 1:nch
                 imean = d.median(ch,:);
         end
         
-        line(imean, yy, 'parent', h.ahMainPlot, 'color', cols{ch}, 'linewidth', lws(ch));
+        plotLine(yy, imean, [], false, 'parent', h.ahMainPlot, 'color', cols{ch}, 'linewidth', lws(ch));
     end
 end
 
@@ -113,7 +111,7 @@ if ~isempty(h.ahColourPlot)
             case 'median'
                 imean = d.median(ch, :) ./ d.median(end, :);
         end
-        line(imean, yy, 'parent', h.ahColourPlot, 'color', cols{ch}, 'linewidth', lws(ch), 'tag', sprintf('plot_mean_ch%d', ch));
+        plotLine(yy, imean, [], false, 'parent', h.ahColourPlot, 'color', cols{ch}, 'linewidth', lws(ch), 'tag', sprintf('plot_mean_ch%d', ch))
     end
 
     % calculate good axis limits
@@ -151,8 +149,8 @@ if ~isempty(h.ahRangePlot)
             imax  = d.max(ch,:);
             imin  = d.min(ch,:);
             ss    = d.std(ch,:);
-            iss1  = imean-ss;
-            iss2  = imean+ss;
+            iss1  = imean - ss;
+            iss2  = imean + ss;
         case 'median'
             imean = d.median(ch,:);
             imax  = d.percmax(ch,:);
@@ -160,20 +158,18 @@ if ~isempty(h.ahRangePlot)
             iss1  = d.perc25(ch,:);
             iss2  = d.perc75(ch,:);
     end
-    imin_norm = log10(imin ./ imean);
-    imax_norm = log10(imax ./ imean);
-    iss1_norm = log10(iss1 ./ imean);
-    iss2_norm = log10(iss2 ./ imean);
-
-    % plot
-
+    
+    % plot shaded areas
     stdo = {'parent', h.ahRangePlot, 'EdgeColor', 'none', 'Clipping', 'on'};
-    fill([imin_norm fliplr(imax_norm)], [yy fliplr(yy)], plotPara.perc50Shading(:)' + (1-plotPara.perc50Shading(:)').*cols{ch}(:)', stdo{:}); % shading for IQR
-    fill([iss1_norm fliplr(iss2_norm)], [yy fliplr(yy)], plotPara.perc95Shading(:)' + (1-plotPara.perc95Shading(:)').*cols{ch}(:)', stdo{:}); % shading for 95%
+    plotShading(yy, imin, imax, imean, true, plotPara.perc50Shading(:)' + (1-plotPara.perc50Shading(:)').*cols{ch}(:)', stdo{:})
+    plotShading(yy, iss1, iss2, imean, true, plotPara.perc95Shading(:)' + (1-plotPara.perc95Shading(:)').*cols{ch}(:)', stdo{:})
 
+    % plot lines
     stdo2 = {'parent', h.ahRangePlot, 'Visible', 'on', 'color', cols{ch}, 'linewidth', lws(ch)};
-    line([iss1_norm(:) iss2_norm(:)], [yy(:) yy(:)], stdo2{:}, 'linestyle', '-'); % line for IQR
-    line([imin_norm(:) imax_norm(:)], [yy(:) yy(:)], stdo2{:}, 'linestyle', ':'); % line for 95%
+    plotLine(yy, iss1, imean, true, stdo2{:}, 'linestyle', '-')
+    plotLine(yy, iss2, imean, true, stdo2{:}, 'linestyle', '-')
+    plotLine(yy, imin, imean, true, stdo2{:}, 'linestyle', ':')
+    plotLine(yy, imax, imean, true, stdo2{:}, 'linestyle', ':')
 
     % calculate good axis limits
     if plotPara.rangeShowYTicks, ytl = num2str((-90:30:90)'); else, ytl = ''; end
@@ -197,17 +193,95 @@ if ~isempty(h.ahRangePlot)
     end
 end
 
-
-
 %% Reset warnings
 warning(s)
 
 %% set visibility
 elf_plot_int_setvis('intfig'); % sets visibility of RGB plot using graphics object tags
 
+end
 
+%% subfunctions
+function plotLine(ele, I, I_norm, logIt, varargin)
+    % plotLine plots an intensity/colour/range profile as a line
+    %   ele - elevation vector
+    %   I - intensity vector
+    %   I_norm - Intensity vector used to normalise intensity after removal of invalid values; i.e. we plot I./I_norm; empty I_norm for no normalisation
+    %   logIt - if true, we plot log10 of the intensity
+    %   varargin - optional arguments to send to the "line" call
 
+    % remove invalid intensity values (these originate from noisy dark removal)
+    I(I<0) = NaN;
+    I_norm(I_norm<0) = NaN;
 
+    % normalise
+    if ~isempty(I_norm)
+        I = I./I_norm;
+    end
+
+    % take log10
+    if logIt
+        I = log10(I);
+    end
+
+    % plot the line
+    line(I(:), ele(:), varargin{:});
+end
+
+function plotShading(ele, I_min, I_max, I_norm, logIt, varargin)
+    % plotShading plots an intensity/colour/range profile as a shaded area
+    %   ele - elevation vector
+    %   I_min - intensity vector defining the left border of the shaded area
+    %   I_max - intensity vector defining the right border of the shaded area
+    %   I_norm - Intensity vector used to normalise intensity after removal of invalid values; i.e. we plot I./I_norm; empty I_norm for no normalisation
+    %   logIt - if true, we plot log10 of the intensity
+    %   varargin - optional arguments to send to the "line" call
+
+    % remove invalid intensity values (these originate from noisy dark removal)
+    I_min(I_min<0) = NaN;
+    I_max(I_max<0) = NaN;
+    I_norm(I_norm<0) = NaN;
+
+    % normalise
+    if ~isempty(I_norm)
+        I_min = I_min./I_norm;
+        I_max = I_max./I_norm;
+    end
+
+    % take log10
+    if logIt
+        I_min = log10(I_min);
+        I_max = log10(I_max);
+    end
+
+    % fill in the NaN values to fix the area boundary
+    [ele1, I1] = fillSaturatedValues(ele, I_min);
+    [ele2, I2] = fillSaturatedValues(ele, I_max);
+
+    % plot the shaded area
+    fill([I1 fliplr(I2)], [ele1 fliplr(ele2)], varargin{:});
+
+    function [ele, I] = fillSaturatedValues(ele, I)
+        % deal with saturated values
+
+        % sort in elevation order
+        [ele, ord] = sort(ele);
+        I = I(ord);
+
+        % 1. If saturation occurs at min elevation, fill with lowest-elevation valid value
+        p1 = find(~isnan(I), 1, 'first');
+        I(1:p1-1) = I(p1);
+
+        % 2. If saturation occurs at max elevation, fill with highest-elevation valid value
+        p2 = find(~isnan(I), 1, 'last');
+        I(p2+1:end) = I(p2);
+        
+        % 3. If saturation occurs somewhere in the middle, leave those values out (leading to linear interpolation in plot)
+        sel = ~isnan(I);
+        I = I(sel);
+        ele = ele(sel);
+    end
+end
 
 
 
