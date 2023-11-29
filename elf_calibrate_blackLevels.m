@@ -136,7 +136,7 @@ function [blackLevel, srcs, warnings] = sub_applyDarkImages(blackLevel, srcs, da
                     srcs(selLight) = 3; % 2 means this black level comes from linearly interpolated dark image
     
                     %% Warn if some of the real images lie too far outside the range
-                    if any(tLight>max(tDark)+0.2/24) || any(tLight<min(tDark)-0.2/24)
+                    if any(tLight>max(tDark)+0.5/24) || any(tLight<min(tDark)-0.5/24)
                         warnings{end+1} = 'Some images were taken >30 min outside the dark-image range.'; %#ok<AGROW> 
                     end
                 else
