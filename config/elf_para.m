@@ -54,14 +54,18 @@ if ~isempty(dataset)
     para                    = elf_io_readwrite(para, 'createfilenames');
 end
 
+%% load .env files
+para.ana  = elf_analysisPara; % analysis parameters (all ELF analysis has to be rerun if these are changed)
+para.plot = elf_plottingPara; % plotting parameters (will be loaded again at plotting time)
+
 %% gui parameters
 para.gui.pnum_cols = 8; % 8 tiles horizontally
 para.gui.pnum_rows = 6; % 6 tiles vertically
 para.gui.smallsize = 200; % size of small preview images in ELF gui
 
 %% projection constants (don't change)
-para.azi                    = -90:.1:90;          % regular elevation sampling for equirectangular projection
-para.ele                    = -90:.1:90;          % regular azimuth sampling for equirectangular projection
+para.azi                    = -90:.1/para.ana.resolutionBooster:90;          % regular elevation sampling for equirectangular projection
+para.ele                    = -90:.1/para.ana.resolutionBooster:90;          % regular azimuth sampling for equirectangular projection
 para.ele2                   = rot90(para.ele,2);
 para.projtype               = 'equisolid';        % if this is 'noproj', no projection will be calculated (original images should be 1801x1801)
 
@@ -89,8 +93,7 @@ para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual hist
                                         % 'hdr'      - Calculate histograms from the HDR image.
 para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'allvalid2', 'noise'                               
                        
-%% plotting parameters (will be loaded again at plotting time)
-para.plot = elf_plottingPara;
+
 
 
 
