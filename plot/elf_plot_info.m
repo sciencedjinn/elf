@@ -28,7 +28,7 @@ function elf_plot_info(h, infoSum, name, nScenes, p)
 
     % left: data set info
     if p.infoShowNameAndStats
-        text(0, 0, infoText1, stdo{:}, 'Parent', h.ahInfo1);
+        text(0, 0, infoText1, stdo{:}, 'Parent', h.ahInfo1, 'Interpreter', 'none');
         axis(h.ahInfo1, [-.5 .5 -.5 .5])
         set(h.ahInfo1, 'Color', 'none')
     end
