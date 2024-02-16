@@ -82,7 +82,7 @@ function calFactors = sub_loadCalib(height, width, info, blackLevel)
         otherwise
             % For an unknown camera, use no calibration correction; an uncalibrated image is better than none
             % 1. black and white levels
-            calFactors.saturation   = info(1).SubIFDs{1}.WhiteLevel(1);      % white level, this should corresponds to a reasonable saturation level
+            calFactors.saturation   = 0.95*info(1).SubIFDs{1}.WhiteLevel(1);      % white level, this should corresponds to a reasonable saturation level
             calFactors.blackLevelMat = sub_getBlackLevelMat(blackLevel, camstring, height, width, exp, iso);
 
             % 2. ISO/EXP/APT calibration

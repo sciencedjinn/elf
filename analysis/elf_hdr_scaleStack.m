@@ -33,8 +33,9 @@ if ~isstruct(compexp)
 %         figure(444); subplot(1, size(im_cal, 4), i); cla; hold on; hist(im_comp(:)./thisim(:), [0:.01:5]); xlim([0 5]); 
 %         plot([nanmedian(im_comp(:)./thisim(:)), nanmedian(im_comp(:)./thisim(:))], [0 1e5], 'm', [nanmean(im_comp(:)./thisim(:)), nanmean(im_comp(:)./thisim(:))], [0 2e4], 'r');
         if scalefac(i)<0.7 || scalefac(i)>1.3
-            warning('The exposure difference between image %d and image %d (comparison exposure) is larger than 30%%. Check!', i, compexp);
+            warning('The exposure difference between image %d and image %d (comparison exposure) is larger than 30%% (%.0f%%). Check!', i, compexp, 100*abs(scalefac(i)-1));
         end
+%         fprintf('Scaling image %d by %.0f%%.\n', i, 100*(scalefac(i)-1))
         im_cal(:, :, :, i)     = im_cal(:, :, :, i) .* scalefac(i);
     end
 else
