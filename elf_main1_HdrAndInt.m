@@ -83,7 +83,7 @@ for iSet = 1:size(sets, 1)
     rawWhiteLevels   = rawWhiteLevels(:, imOrder);
     
     % scale images to match middle exposure (creates a warning if scaling by more than 30%)
-    [im_proj, res.scalefac] = elf_hdr_scaleStack(im_proj, conf_proj, rawWhiteLevels);
+%     [im_proj, res.scalefac] = elf_hdr_scaleStack(im_proj, conf_proj, rawWhiteLevels);
     
     % Pass a figure number and an outputfilename here only if you want diagnostic pdfs.
     % However, MATLAB can't currently deal with saving these large figures, so no pdf will be created either way.

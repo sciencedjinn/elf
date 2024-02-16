@@ -13,6 +13,7 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
     srcs       = nan(size(iso));
     camstring  = info(1).Model;
     
+    uncalibrated = false;
     switch lower(camstring)
         case 'nikon d810'
             para = elf_para;
@@ -37,8 +38,13 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
             srcs(iso<=1600 & exp<=1) = 1; % 1: iso<=1600 and exp<=1; here, calib shows that noise is low
     
         otherwise
-            blackLevel = info.SubIFDs{1}.BlackLevel(1) * ones(length(iso), 3);   % black level saved by camera in exif file. This seems to very closely correspond to measured readout noise
+            % For an unknown camera format, try with the manufacturer-supplied black level
             elf_support_logmsg('          No calibration exists for this camera.\n');
+            blackLevel = nan(length(iso), 3);
+            for i = 1:length(iso)
+                blackLevel(i, :) = info(i).SubIFDs{1}.BlackLevel(1) * ones(1, 3);   % black level saved by camera in exif file. This seems to very closely correspond to measured readout noise
+            end
+            uncalibrated = true;
     end
 
     % 2 (dark images): Load all dark images and apply them
@@ -46,19 +52,25 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
     [blackLevel, srcs, warnings] = sub_applyDarkImages(blackLevel, srcs, dark, iso, exp, t);
 
     % 3: log messages/warnings
-    elf_support_logmsg('          Dark correction finished:\n');
-    elf_support_logmsg('            %d image(s) were corrected using the default black level or calibration\n', nnz(srcs==1));
-    elf_support_logmsg('            %d image(s) were corrected using dark images\n', nnz(srcs==2 | srcs==3));
-    elf_support_logmsg('            %d image(s) were NOT PROPERLY dark corrected\n', nnz(isnan(srcs)));
-    if isempty(warnings)
-        elf_support_logmsg('          No warnings were encountered.\n');
+    if uncalibrated
+        elf_support_logmsg('          No camera calibration exists:\n');
+        elf_support_logmsg('            All image(s) were corrected using the manufacturer black level.\n');
+        warnings{end+1} = 'No calibration exists for this camera';
     else
-        elf_support_logmsg('          %d warnings were encountered:\n', length(warnings));
-        for i = 1:length(warnings)
-            elf_support_logmsg('            %s\n', warnings{i});
+        elf_support_logmsg('          Dark correction finished:\n');
+        elf_support_logmsg('            %d image(s) were corrected using the default black level or calibration\n', nnz(srcs==1));
+        elf_support_logmsg('            %d image(s) were corrected using dark images\n', nnz(srcs==2 | srcs==3));
+        elf_support_logmsg('            %d image(s) were NOT PROPERLY dark corrected\n', nnz(isnan(srcs)));
+        if isempty(warnings)
+            elf_support_logmsg('          No warnings were encountered.\n');
+        else
+            elf_support_logmsg('          %d warnings were encountered:\n', length(warnings));
+            for i = 1:length(warnings)
+                elf_support_logmsg('            %s\n', warnings{i});
+            end
         end
+                        elf_support_logmsg('        done.\n');
     end
-                    elf_support_logmsg('        done.\n');
 end
 
 %% Sub functions
