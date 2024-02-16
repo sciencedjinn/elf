@@ -58,7 +58,7 @@ switch lower(camstring)
 
     otherwise
         darkmean     = info.SubIFDs{1}.BlackLevel(1) * ones(length(exp), 3);   % black level saved by camera in exif file. This seems to very closely correspond to measured readout noise
-        saturation   = info.SubIFDs{1}.WhiteLevel;      % white level, this should corresponds to a reasonable saturation level
+        saturation   = 0.95*info.SubIFDs{1}.WhiteLevel;      % white level, this should corresponds to a reasonable saturation level
 end
 
 end % main

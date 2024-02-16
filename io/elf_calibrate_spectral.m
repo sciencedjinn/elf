@@ -107,8 +107,8 @@ function col = sub_getCol(camstring, wb_multipliers)
             TEMP    = load(fname, 'col');            
             col     = TEMP.col;
         else
-            % If there is no calibration, don't even try
-            col = [1 1 1]; % For some cameras, we can use wb_multipliers here, but not as a general rule
+            % If there is no calibration, use camera manufacturer's white balance multipliers
+            col = 1./wb_multipliers;
         end
 
         storedCol     = col;
