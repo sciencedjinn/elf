@@ -6,6 +6,7 @@ function info = elf_info_load(fullfilename)
 
 temp = warning('off', 'MATLAB:imagesci:tifftagsread:badTagValueDivisionByZero'); % happens with cr2
 warning('off', 'imageio:tifftagsread:expectedTagDataFormat');
+warning('off', 'imageio:tifftagsread:badTagValueDivisionByZero');
 info = imfinfo(fullfilename); % get exif info
 warning(temp); % turn warnings back on
 
