@@ -18,7 +18,7 @@ if nargin<4 || isempty(method), method = 'default'; end
 if nargin<3 || isempty(ele), ele = 90:-0.1:-90; end
 if nargin<2 || isempty(azi), azi = -90:0.1:90; end
 
-                    elf_support_logmsg('      Calculating projection constants...');
+                    Logger.log(LogLevel.INFO, '      Calculating projection constants...');
 
 %% Provide 'noproj' mode for internal testing. In this mode, images are assumed to already be projected into equirectangular projection
 if strcmp(method, 'noproj')
@@ -72,5 +72,5 @@ I_info.proj_grid_y(I_info.proj_grid_y==0) = NaN;
 I_info.proj_azi      = azi;
 I_info.proj_ele      = ele;
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');
+                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');
                     

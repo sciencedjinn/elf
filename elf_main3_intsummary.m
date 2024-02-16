@@ -2,7 +2,7 @@ function elf_main3_intsummary(dataSet, imgFormat)
 % ELF_MAIN3_INTSUMMARY averages the intensity descriptors for an environment, 
 % plots the results, and saves the plot to jpg 
 %
-% Uses: elf_support_logmsg, elf_paths, elf_para, elf_para_update, 
+% Uses: elf_paths, elf_para, elf_para_update, 
 %       elf_info_collect, elf_io_readwrite, elf_analysis_datasetmean, 
 %       elf_plot_intsummary
 %
@@ -17,8 +17,8 @@ function elf_main3_intsummary(dataSet, imgFormat)
 if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                    elf_support_logmsg('----- ELF Step 3: Calculating and plotting intensity summary -----\n');
+                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
+                    Logger.log(LogLevel.INFO, '----- ELF Step 3: Calculating and plotting intensity summary -----\n');
 
 %% Set up paths and file names; read info, infosum and para
 elf_paths;
@@ -28,7 +28,7 @@ info            = elf_info_collect(fullfile(para.paths.datapath, para.paths.scen
 infoSum         = elf_io_readwrite(para, 'loadinfosum');                                               % loads the old infosum file (which contains projection information)
 fNames_im       = {info.Filename};                                                                     % collect image names
 
-                    elf_support_logmsg('      Averaging intensity across all %d scenes in environment %s\n', length(fNames_im), dataSet)
+                    Logger.log(LogLevel.INFO, '      Averaging intensity across all %d scenes in environment %s\n', length(fNames_im), dataSet)
                     
 %% Load data, calculate data mean
 data            = elf_io_readwrite(para, 'loadres', fNames_im);

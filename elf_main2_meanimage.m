@@ -3,7 +3,7 @@ function elf_main2_meanimage(dataSet, verbose)
 % of all normalised HDR scenes. Scenes are normalised in elf_main1 using the correctdng
 % "bright" method, which sets the mean luminance to 1/4 of maximum.
 %
-% Uses: elf_support_logmsg, elf_paths, elf_para, elf_io_readwrite, 
+% Uses: elf_paths, elf_para, elf_io_readwrite, 
 %       elf_plot_image, elf_analysis_int, elf_support_formatA4l
 %
 % Loads files: *.tif files in scenes subfolder
@@ -17,9 +17,9 @@ function elf_main2_meanimage(dataSet, verbose)
 if nargin < 2, verbose = false; end % verbose determines whether each individual image is plotted during the process, and thumbs are provided at the end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                    elf_support_logmsg('----- ELF Step 2: Mean Image -----\n');
-                    elf_support_logmsg('      Processing environment %s\n', dataSet);
+                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
+                    Logger.log(LogLevel.INFO, '----- ELF Step 2: Mean Image -----\n');
+                    Logger.log(LogLevel.INFO, '      Processing environment %s\n', dataSet);
 
 %% Set up paths and file names; read info, infosum and para
 elf_paths;

@@ -4,7 +4,7 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
 % Inputs:
 %   info - 1 x n info structure, containing the exif information of the raw image files (created by elf_info_collect)
 
-                    elf_support_logmsg('      Calculating black levels / reading dark images ...\n');
+                    Logger.log(LogLevel.INFO, '      Calculating black levels / reading dark images ...\n');
 
     darkFolder = fullfile(fileparts(info(1).Filename), 'dark');
     exp        = arrayfun(@(x) x.DigitalCamera.ExposureTime, info);      % exposure time in seconds
@@ -39,7 +39,7 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
     
         otherwise
             % For an unknown camera format, try with the manufacturer-supplied black level
-            elf_support_logmsg('          No calibration exists for this camera.\n');
+            Logger.log(LogLevel.INFO, '          No calibration exists for this camera.\n');
             blackLevel = nan(length(iso), 3);
             for i = 1:length(iso)
                 blackLevel(i, :) = info(i).SubIFDs{1}.BlackLevel(1) * ones(1, 3);   % black level saved by camera in exif file. This seems to very closely correspond to measured readout noise
@@ -53,23 +53,23 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
 
     % 3: log messages/warnings
     if uncalibrated
-        elf_support_logmsg('          No camera calibration exists:\n');
-        elf_support_logmsg('            All image(s) were corrected using the manufacturer black level.\n');
+        Logger.log(LogLevel.INFO, '          No camera calibration exists:\n');
+        Logger.log(LogLevel.INFO, '            All image(s) were corrected using the manufacturer black level.\n');
         warnings{end+1} = 'No calibration exists for this camera';
     else
-        elf_support_logmsg('          Dark correction finished:\n');
-        elf_support_logmsg('            %d image(s) were corrected using the default black level or calibration\n', nnz(srcs==1));
-        elf_support_logmsg('            %d image(s) were corrected using dark images\n', nnz(srcs==2 | srcs==3));
-        elf_support_logmsg('            %d image(s) were NOT PROPERLY dark corrected\n', nnz(isnan(srcs)));
+        Logger.log(LogLevel.INFO, '          Dark correction finished:\n');
+        Logger.log(LogLevel.INFO, '            %d image(s) were corrected using the default black level or calibration\n', nnz(srcs==1));
+        Logger.log(LogLevel.INFO, '            %d image(s) were corrected using dark images\n', nnz(srcs==2 | srcs==3));
+        Logger.log(LogLevel.INFO, '            %d image(s) were NOT PROPERLY dark corrected\n', nnz(isnan(srcs)));
         if isempty(warnings)
-            elf_support_logmsg('          No warnings were encountered.\n');
+            Logger.log(LogLevel.INFO, '          No warnings were encountered.\n');
         else
-            elf_support_logmsg('          %d warnings were encountered:\n', length(warnings));
+            Logger.log(LogLevel.INFO, '          %d warnings were encountered:\n', length(warnings));
             for i = 1:length(warnings)
-                elf_support_logmsg('            %s\n', warnings{i});
+                Logger.log(LogLevel.INFO, '            %s\n', warnings{i});
             end
         end
-                        elf_support_logmsg('        done.\n');
+                        Logger.log(LogLevel.INFO, '        done.\n');
     end
 end
 
@@ -113,9 +113,9 @@ function [blackLevel, srcs, warnings] = sub_applyDarkImages(blackLevel, srcs, da
     t = round(t*24*60)/24/60;
 
     if isempty(dark)
-        elf_support_logmsg('          No dark images were found.\n');
+        Logger.log(LogLevel.INFO, '          No dark images were found.\n');
     else
-        elf_support_logmsg('          Applying dark images for all available conditions...\n');
+        Logger.log(LogLevel.INFO, '          Applying dark images for all available conditions...\n');
         dark.t = round(dark.t*24*60)/24/60;
         uExp = unique(dark.exp);
         for e = 1:length(uExp)
@@ -137,7 +137,7 @@ function [blackLevel, srcs, warnings] = sub_applyDarkImages(blackLevel, srcs, da
                     darkValuesUnique(j, :) = mean(darkValues(tDark==tDarkUnique(j), :), 1);
                 end
                     
-                elf_support_logmsg('              For ISO %d & exposure %.3f s, %d dark image(s) (avgd to %d dark time value(s)) exist.\n', thisIso, thisExp, length(tDark), length(tDarkUnique));
+                Logger.log(LogLevel.INFO, '              For ISO %d & exposure %.3f s, %d dark image(s) (avgd to %d dark time value(s)) exist.\n', thisIso, thisExp, length(tDark), length(tDarkUnique));
                     
                 if isempty(tDarkUnique)
                     error('Something is wrong with this loop')
@@ -193,11 +193,11 @@ function interpDarkValues = sub_interp(tDarkUnique, darkValuesUnique, tLight)
     end
 
     % Diagnostics (only activate for debugging)
-%     elf_support_logmsg('              Last dark image was taken %d minutes after the first one.\n', round((tMax-tMin)*24*60));
-%     elf_support_logmsg('              Bright images were taken between %d and %d minutes after the first dark image.\n', round((min(tLight)-tMin)*24*60), round((max(tLight)-tMin)*24*60));
-%     elf_support_logmsg('              %d bright image(s) before the first dark image.\n', nnz(selMin));
-%     elf_support_logmsg('              %d bright image(s) in between dark images.\n', nnz(selWithin));
-%     elf_support_logmsg('              %d bright image(s) after the last dark image.\n', nnz(selMax));
+%     Logger.log(LogLevel.INFO, '              Last dark image was taken %d minutes after the first one.\n', round((tMax-tMin)*24*60));
+%     Logger.log(LogLevel.INFO, '              Bright images were taken between %d and %d minutes after the first dark image.\n', round((min(tLight)-tMin)*24*60), round((max(tLight)-tMin)*24*60));
+%     Logger.log(LogLevel.INFO, '              %d bright image(s) before the first dark image.\n', nnz(selMin));
+%     Logger.log(LogLevel.INFO, '              %d bright image(s) in between dark images.\n', nnz(selWithin));
+%     Logger.log(LogLevel.INFO, '              %d bright image(s) after the last dark image.\n', nnz(selMax));
 %     figure; 
 %     plot(24*60*(tDarkUnique-tMin), darkValuesUnique(:, 1), 'ro', 24*60*(tDarkUnique-tMin), darkValuesUnique(:, 2), 'go', 24*60*(tDarkUnique-tMin), darkValuesUnique(:, 3), 'bo',...
 %         24*60*(tLight-tMin), interpDarkValues(:, 1), 'rx', 24*60*(tLight-tMin), interpDarkValues(:, 2), 'gx', 24*60*(tLight-tMin), interpDarkValues(:, 3), 'bx');

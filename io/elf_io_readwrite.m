@@ -197,7 +197,7 @@ switch action
         fname_filt  = fullfile(para.paths.datapath, para.paths.filtfolder, [f '_filt.mat']);
         im_filt_HDR = varinput; % this is only necessary for backward compatibility. TODO: refilter all datasets so they contain varinput instead of im_filt_HDR
         save(fname_filt, 'im_filt_HDR');
-                            elf_support_logmsg('      Filtered %s saved to %s\n', f, fname);
+                            Logger.log(LogLevel.INFO, '      Filtered %s saved to %s\n', f, fname);
                             
     case 'loadfilt_mat'     % im_filt = elf_io_readwrite(para, 'loadfilt_mat', sprintf('scene%03d', setnr))
         %% loads several filtered HDR images for one scene from mat file
@@ -209,7 +209,7 @@ switch action
 %     case 'savepolar'     % elf_io_readwrite(para, 'savepolar', [], pol)
 %         fname = fullfile(para.paths.root, sprintf('polresults.mat'));
 %         save(fname, 'varinput');
-%                             elf_support_logmsg('      Polarisation results saved to %s\n', fname);
+%                             Logger.log(LogLevel.INFO, '      Polarisation results saved to %s\n', fname);
 %         
 %     case 'loadpolar'     % pol = elf_io_readwrite(para, 'loadpolar')
 %         fname = fullfile(para.paths.root, sprintf('polresults.mat'));
@@ -222,7 +222,7 @@ switch action
         fname_filt  = fullfile(para.paths.datapath, para.paths.filtfolder, [f '_stokes_filt.mat']);
         imStokes_filt = varinput;  % this is only necessary for backward compatibility. TODO: refilter all datasets so they contain varinput instead of im_filt_HDR
         save(fname_filt, 'imStokes_filt');
-                            elf_support_logmsg('      Stokes parameters for dataset %s saved to %s\n', f, fname_filt);
+                            Logger.log(LogLevel.INFO, '      Stokes parameters for dataset %s saved to %s\n', f, fname_filt);
                             
     case 'loadstokes_mat'     % imStokes_filt = elf_io_readwrite(para, 'loadstokes_mat', sprintf('scene%03d', setnr))
         %% loads both filtered HDR images for one scene from mat file
@@ -263,12 +263,12 @@ switch action
     case 'savemeanimg_tif'  % elf_io_readwrite(para, 'savemeanimg_tif', '', meanimage)
         %% saves the mean image for an environment to a 16-bit tif; assumes that input is uint16
         imwrite(varinput, para.paths.fname_meanimg_tif, 'tif', 'Compression', 'lzw') %save mean image as tif
-                            elf_support_logmsg('      Mean image saved as TIF to <a href="matlab:winopen(''%s'')">%s</a>\n', para.paths.fname_meanimg_tif, para.paths.fname_meanimg_tif);
+                            Logger.log(LogLevel.INFO, '      Mean image saved as TIF to <a href="matlab:winopen(''%s'')">%s</a>\n', para.paths.fname_meanimg_tif, para.paths.fname_meanimg_tif);
     
     case 'savemeanimg_jpg'  % elf_io_readwrite(para, 'savemeanimg_jpg', '', meanimage)
         %% saves the mean image for an environment to a jpg
         imwrite(im2uint8(varinput), para.paths.fname_meanimg_jpg, 'jpeg') %save mean image as jpg
-                            elf_support_logmsg('      Mean image saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', para.paths.fname_meanimg_jpg, para.paths.fname_meanimg_jpg);
+                            Logger.log(LogLevel.INFO, '      Mean image saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', para.paths.fname_meanimg_jpg, para.paths.fname_meanimg_jpg);
 
     case 'loadmeanimg_tif'  % meanim = elf_io_readwrite(para, 'loadmeanimg_tif')
         %% loads mean image for an environment from tif
@@ -366,52 +366,52 @@ switch action
         [~,f]       = fileparts(fname);
         fname       = fullfile(para.paths.datapath, para.paths.matfolder, [f '.jpg']);
         sub_savejpg(varinput, fname);
-                            elf_support_logmsg('      VEP for %s saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', f, fname, fname);
+                            Logger.log(LogLevel.INFO, '      VEP for %s saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', f, fname, fname);
     
     case 'savevep_pdf'      % elf_io_readwrite(para, 'savevep_pdf', fname, fh)
         %% saves the VEP for a single scene to PDF
         [~,f]       = fileparts(fname);
         fname       = fullfile(para.paths.datapath, para.paths.matfolder, [f '.pdf']);
         sub_savepdf(varinput, fname);
-                            elf_support_logmsg('      VEP for %s saved as PDF to <a href="matlab:open(''%s'')">%s</a>\n', f, fname, fname);
+                            Logger.log(LogLevel.INFO, '      VEP for %s saved as PDF to <a href="matlab:open(''%s'')">%s</a>\n', f, fname, fname);
         
     case 'saveivep_jpg'     % elf_io_readwrite(para, 'saveivep_jpg', fname, fh)
         %% saves the intensity VEP for a single scene to JPG
         [~,f]       = fileparts(fname);
         fname       = fullfile(para.paths.datapath, para.paths.matfolder, [f '.jpg']);
         sub_savejpg(varinput, fname);
-                            elf_support_logmsg('      iVEP for %s saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', f, fname, fname);
+                            Logger.log(LogLevel.INFO, '      iVEP for %s saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', f, fname, fname);
         
     case 'saveivep_pdf'     % elf_io_readwrite(para, 'saveivep_pdf', fname, fh)
         %% saves the intensity VEP for a single scene to PDF
         [~,f]       = fileparts(fname);
         fname       = fullfile(para.paths.datapath, para.paths.matfolder, [f '.pdf']);
         sub_savepdf(varinput, fname);
-                            elf_support_logmsg('      iVEP for %s saved as PDF to <a href="matlab:winopen(''%s'')">%s</a>\n', f, fname, fname);
+                            Logger.log(LogLevel.INFO, '      iVEP for %s saved as PDF to <a href="matlab:winopen(''%s'')">%s</a>\n', f, fname, fname);
 
     case 'savemeanvep_jpg'  % elf_io_readwrite(para, 'savemeanvep_jpg', '', fh)
         %% saves the mean VEP for an environment to JPG
         filename = para.paths.fname_meanvep_jpg;
         sub_savejpg(varinput, filename);
-                            elf_support_logmsg('      Mean VEP saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', filename, filename);
+                            Logger.log(LogLevel.INFO, '      Mean VEP saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', filename, filename);
 
     case 'savemeanvep_pdf'  % elf_io_readwrite(para, 'savemeanvep_pdf', '', fh)
         %% saves the mean VEP for an environment to PDF
         filename = para.paths.fname_meanvep_pdf;
         sub_savepdf(varinput, filename);
-                            elf_support_logmsg('      Mean VEP saved as PDF to <a href="matlab:open(''%s'')">%s</a>\n', filename, filename);
+                            Logger.log(LogLevel.INFO, '      Mean VEP saved as PDF to <a href="matlab:open(''%s'')">%s</a>\n', filename, filename);
         
     case 'savemeanivep_jpg' % elf_io_readwrite(para, 'savemeanivep_jpg', '', fh)
         %% saves the mean intensity VEP for an environment to JPG
         filename = para.paths.fname_meanivep_jpg;
         sub_savejpg(varinput, filename);
-                            elf_support_logmsg('      Mean iVEP saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', filename, filename);
+                            Logger.log(LogLevel.INFO, '      Mean iVEP saved as JPG to <a href="matlab:winopen(''%s'')">%s</a>\n', filename, filename);
         
     case 'savemeanivep_pdf' % elf_io_readwrite(para, 'savemeanivep_pdf', '', fh)
         %% saves the mean intensity VEP for an environment to PDF
         filename = para.paths.fname_meanivep_pdf;
         sub_savepdf(varinput, filename);
-                            elf_support_logmsg('      Mean iVEP saved as PDF to <a href="matlab:open(''%s'')">%s</a>\n', filename, filename);
+                            Logger.log(LogLevel.INFO, '      Mean iVEP saved as PDF to <a href="matlab:open(''%s'')">%s</a>\n', filename, filename);
 
     otherwise
         error('Unknown action');

@@ -3,7 +3,7 @@ function elf_main1_HdrAndInt(dataSet, imgFormat, verbose, rotation)
 % scenes, and calculates HDR representations of these scenes as mat for later contrast calculations and as tif for the mean image. 
 % Intensity descriptors are calculated for each exposure and then combined for scenes based on individual pixel reliability.
 %
-% Uses: elf_paths, elf_support_logmsg, elf_para, elf_info_collect, 
+% Uses: elf_paths, elf_para, elf_info_collect, 
 %       elf_info_summarise, elf_hdr_brackets, elf_project_image, 
 %       elf_io_readwrite, elf_hdr_calcHDR, elf_io_correctdng, elf_io_imread
 %       elf_analysis_int, elf_support_formatA4l
@@ -22,8 +22,8 @@ if nargin < 3, verbose = false; end
 if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                    elf_support_logmsg('----- ELF Step 1: Calibration, HDR and Intensity -----\n')
+                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
+                    Logger.log(LogLevel.INFO, '----- ELF Step 1: Calibration, HDR and Intensity -----\n')
 
 %% Set up paths and file names; read info, infosum and para, calculate sets
 para            = elf_para('', dataSet, imgFormat, verbose);
@@ -31,7 +31,7 @@ info            = elf_info_collect(para.paths.datapath, imgFormat);   % this con
 infoSum         = elf_info_summarise(info, false);                  % summarise EXIF information for this dataset. This will be saved for later use below
 infoSum.linims  = strcmp(imgFormat, '*.dng');                         % if linear images are used, correct for that during plotting
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
-                    elf_support_logmsg('      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
+                    Logger.log(LogLevel.INFO, '      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
 
 %% Set up projection constants
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
@@ -128,19 +128,19 @@ for iSet = 1:size(sets, 1)
     
     
                     if iSet == 1
-                        elf_support_logmsg('      Starting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
-                        elf_support_logmsg('      Scene: 1..');
+                        Logger.log(LogLevel.INFO, '      Starting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
+                        Logger.log(LogLevel.INFO, '      Scene: 1..');
                     elseif mod(iSet-1, 20)==0
-                        elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                        elf_support_logmsg('             %d..', iSet);
+                        Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
+                        Logger.log(LogLevel.INFO, '             %d..', iSet);
                     else
-                        elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b%d..', iSet);
+                        Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b%d..', iSet);
                     end
 end
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');    
-                    elf_support_logmsg('      Summary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
-                    elf_support_logmsg('      Summary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
+                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');    
+                    Logger.log(LogLevel.INFO, '      Summary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
+                    Logger.log(LogLevel.INFO, '      Summary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
 
 
 

@@ -37,9 +37,9 @@ if nargin < 2 || isempty(ele),      ele     = -90:.1:90; end
 
 %% display parameters
 if verbose
-    elf_support_logmsg('         Performing intensity analysis (type %s) with %d elevation bins (%g%c wide each).\n', type, hdivn, (max(ele)-min(ele))/hdivn, 186);
-    elf_support_logmsg('         Minimum and maximum will be calculated to include %g%% of the data.\n', perc);
-    elf_support_logmsg('         BW channel is calculated as the mean of RGB.\n');
+    Logger.log(LogLevel.INFO, '         Performing intensity analysis (type %s) with %d elevation bins (%g%c wide each).\n', type, hdivn, (max(ele)-min(ele))/hdivn, 186);
+    Logger.log(LogLevel.INFO, '         Minimum and maximum will be calculated to include %g%% of the data.\n', perc);
+    Logger.log(LogLevel.INFO, '         BW channel is calculated as the mean of RGB.\n');
 end
 
 %% Some basic variables

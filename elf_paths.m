@@ -19,5 +19,5 @@ addpath(fullfile(thispath, 'help'));
 addpath(fullfile(thispath, 'io'));
 addpath(fullfile(thispath, 'plot'));
 addpath(fullfile(thispath, 'project'));
-addpath(fullfile(thispath, 'support'));
+addpath(genpath(fullfile(thispath, 'support')));
 addpath(genpath(fullfile(thispath, 'modules'))); % add all installed modules

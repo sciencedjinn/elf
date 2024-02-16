@@ -16,7 +16,7 @@ if nargin<1, verbose = false; end
 
 %% verbose output
 if verbose
-    elf_support_logmsg('----- Version check -----\n');
+    Logger.log(LogLevel.INFO, '----- Version check -----\n');
 end
 
 %% determine and check version
@@ -56,35 +56,35 @@ end
 
 %% Results output
 if verbose
-    elf_support_logmsg('      You are running MATLAB version %s on a %s.\n', v.Version, compstr);
+    Logger.log(LogLevel.INFO, '      You are running MATLAB version %s on a %s.\n', v.Version, compstr);
 end
 if verLessThan('matlab', '9.0')
     if verbose
-        elf_support_logmsg('\n');
-        elf_support_logmsg('      This program has only been tested for version 9.0 (2016a) and above. Please report any errors or bugs.\n');
+        Logger.log(LogLevel.INFO, '\n');
+        Logger.log(LogLevel.INFO, '      This program has only been tested for version 9.0 (2016a) and above. Please report any errors or bugs.\n');
     end
     warning('This program has only been tested for version 9.0 (2016a) and above. Please report any errors or bugs.');
 end
 if ~osfine
     if verbose
-        elf_support_logmsg('\n');
-        elf_support_logmsg('      This program has not been tested on your operating system. Please report any errors or bugs.\n');
+        Logger.log(LogLevel.INFO, '\n');
+        Logger.log(LogLevel.INFO, '      This program has not been tested on your operating system. Please report any errors or bugs.\n');
     end
     warning('This program has not been tested on your operating system. Please report any errors or bugs.');
 end
 if ~license('test', 'Image_Toolbox') 
     error('No Image Processing Toolbox license found. This program will not run properly without this toolbox.');
 elseif verbose
-    elf_support_logmsg('      Image Processing Toolbox license found.\n');
+    Logger.log(LogLevel.INFO, '      Image Processing Toolbox license found.\n');
 end
 if ~license('test', 'Statistics_Toolbox')
     error('No Statistics Toolbox license found. This program will not run properly without this toolbox.');
 elseif verbose
-    elf_support_logmsg('      Statistics Toolbox license found.\n');
+    Logger.log(LogLevel.INFO, '      Statistics Toolbox license found.\n');
 end
 if verbose 
-    elf_support_logmsg('      Please make sure the toolboxes are also INSTALLED.\n');
+    Logger.log(LogLevel.INFO, '      Please make sure the toolboxes are also INSTALLED.\n');
 end
 if ~verLessThan('matlab', '9.0') && osfine && verbose && license('test', 'Image_Toolbox') && license('test', 'Statistics_Toolbox')
-    elf_support_logmsg('      This program should be running fine.\n');
+    Logger.log(LogLevel.INFO, '      This program should be running fine.\n');
 end

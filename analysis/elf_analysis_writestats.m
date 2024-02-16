@@ -40,5 +40,5 @@ function elf_analysis_writestats(meandata, filename)
                         '97.5th perc R', '97.5th perc G', '97.5th perc B', '97.5th perc W'};
     writetable(outTable2, filename, 'WriteMode', 'append', 'WriteVariableNames', true);
     
-                            elf_support_logmsg('      Statistics written to <a href="matlab:winopen(''%s'')">%s</a>\n', filename, filename);
+                            Logger.log(LogLevel.INFO, '      Statistics written to <a href="matlab:winopen(''%s'')">%s</a>\n', filename, filename);
 end
