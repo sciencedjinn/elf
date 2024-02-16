@@ -22,7 +22,7 @@ if nargin < 3, verbose = false; end
 if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
-                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
+                    Logger.log(LogLevel.INFO, '\n');
                     Logger.log(LogLevel.INFO, '----- ELF Step 1: Calibration, HDR and Intensity -----\n')
 
 %% Set up paths and file names; read info, infosum and para, calculate sets
@@ -128,19 +128,18 @@ for iSet = 1:size(sets, 1)
     
     
                     if iSet == 1
-                        Logger.log(LogLevel.INFO, '      Starting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
-                        Logger.log(LogLevel.INFO, '      Scene: 1..');
+                        Logger.log(LogLevel.INFO, '\tStarting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
+                        Logger.log(LogLevel.INFO, '\tScene: 1..');
                     elseif mod(iSet-1, 20)==0
-                        Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                        Logger.log(LogLevel.INFO, '             %d..', iSet);
+                        Logger.log(LogLevel.INFO, '\t%d..', iSet);
                     else
-                        Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b%d..', iSet);
+                        Logger.log(LogLevel.INFO, '\t%d..', iSet);
                     end
 end
 
-                    Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');    
-                    Logger.log(LogLevel.INFO, '      Summary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
-                    Logger.log(LogLevel.INFO, '      Summary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
+                    Logger.log(LogLevel.INFO, '\t\tdone.\n');    
+                    Logger.log(LogLevel.INFO, '\tSummary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
+                    Logger.log(LogLevel.INFO, '\tSummary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
 
 
 
