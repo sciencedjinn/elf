@@ -59,7 +59,7 @@ for iSet = 1:size(sets, 1)
     rawWhiteLevels = zeros(3, nIms);        % pre-allocate; raw white levels (after black subtraction)
     
     for i = 1:nIms % for each image in this set
-        % Load image        
+        % Load image
         imNo                    = setStart + i - 1;     % the number of this image
         fName                   = info(imNo).Filename;  % full path to input image file
         im_raw                  = elf_io_imread(fName); % load the image (uint16)
@@ -74,8 +74,8 @@ for iSet = 1:size(sets, 1)
         conf_proj(:, :, :, i)   = elf_project_apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
     end
     
-    % Sort images by EV
-    EV               = arrayfun(@(x) x.DigitalCamera.ExposureBiasValue, info(setStart:setEnd));
+    % Sort images by EV = exp * iso / apt^2
+    EV               = arrayfun(@(x) x.DigitalCamera.ExposureTime * x.DigitalCamera.ISOSpeedRatings / x.DigitalCamera.FNumber^2, info(setStart:setEnd));
     [~, imOrder]     = sort(EV);         % sorted EV (ascending), for HDR calculation
     im_proj          = im_proj(:, :, :, imOrder);
 %     im_proj_cal      = im_proj_cal(:, :, :, imOrder);
