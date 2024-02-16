@@ -53,7 +53,7 @@ switch method
     case 'col'
         % This is the current default:  Scale individual channels so each one represents the weighted average spectral photon radiance
         %                               over that pixels sensitivity
-        col  = sub_getCol(camstring);
+        col  = sub_getCol(camstring, wb_multipliers);
         im(:, :, 1) = im(:, :, 1) / col(1);
         im(:, :, 2) = im(:, :, 2) / col(2);
         im(:, :, 3) = im(:, :, 3) / col(3);
@@ -78,15 +78,20 @@ function colmat = sub_getColMat(camstring)
         colmat  = storedColMat;
     else % load from file
         para    = elf_para;
-        TEMP    = load(fullfile(para.paths.calibfolder, lower(camstring), 'rgb_calib.mat'), 'colmat');            
-        colmat  = TEMP.colmat;
+        fname = fullfile(para.paths.calibfolder, lower(camstring), 'rgb_calib.mat');
+        if isfile(fname)
+            TEMP    = load(fname, 'colmat');  
+            colmat  = TEMP.colmat;
+        else
+            error('No colour calibration exists for this camera, and colmat method is not possible: %s', camstring);
+        end
 
         storedColMat     = colmat;
         storedColMatName = camstring;
     end
 end
 
-function col = sub_getCol(camstring)
+function col = sub_getCol(camstring, wb_multipliers)
     % load or calculate color correction vector for this image camera type
     % Saving to a file and loading when needed has been tested and takes longer than recalculating on ELFPC (0.8s v 0.2s)
     
@@ -97,9 +102,15 @@ function col = sub_getCol(camstring)
         col     = storedCol;
     else % load from file
         para    = elf_para;
-        TEMP    = load(fullfile(para.paths.calibfolder, lower(camstring), 'rgb_calib.mat'), 'col');            
-        col     = TEMP.col;
-        
+        fname = fullfile(para.paths.calibfolder, lower(camstring), 'rgb_calib.mat');
+        if isfile(fname)
+            TEMP    = load(fname, 'col');            
+            col     = TEMP.col;
+        else
+            % If there is no calibration, don't even try
+            col = [1 1 1]; % For some cameras, we can use wb_multipliers here, but not as a general rule
+        end
+
         storedCol     = col;
         storedColName = camstring;
     end

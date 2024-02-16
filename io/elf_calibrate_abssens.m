@@ -63,6 +63,7 @@ function calFactors = sub_loadCalib(height, width, info, blackLevel)
             
             % 3. Vignetting
             calFactors.vignMat = sub_getVignMat('nikon d810', height, width);
+
         case 'nikon d850'
             % 1. black and white levels
             calFactors.saturation = 15520;
@@ -79,8 +80,19 @@ function calFactors = sub_loadCalib(height, width, info, blackLevel)
             calFactors.vignMat = sub_getVignMat('nikon d810', height, width);
             
         otherwise
-            calFactors.saturation   = info.SubIFDs{1}.WhiteLevel;      % white level, this should corresponds to a reasonable saturation level
-            error('No intensity calibration available for this camera (%s) ', camstring);
+            % For an unknown camera, use no calibration correction; an uncalibrated image is better than none
+            % 1. black and white levels
+            calFactors.saturation   = info(1).SubIFDs{1}.WhiteLevel(1);      % white level, this should corresponds to a reasonable saturation level
+            calFactors.blackLevelMat = sub_getBlackLevelMat(blackLevel, camstring, height, width, exp, iso);
+
+            % 2. ISO/EXP/APT calibration
+            calFactors.absolute = [1 1 1];
+            calFactors.absMat   = sub_getAbsMat([1 1 1], camstring, height, width);
+                        
+            % 3. Vignetting
+            calFactors.vignMat = sub_getVignMat('nikon d810', height, width);
+
+            warning('No intensity calibration available for this camera (%s) ', camstring);
     end
 end
 
@@ -115,7 +127,9 @@ function [im, conf, confFactors] = sub_applyCalib(im, info, calFactors)
             % 2. ISO/EXP/APT calibration
             acf     = calFactors.acf(calFactors.acf(:, 1)==apt, 2);
             settingFactor  = exp * iso * acf;
-
+        
+        otherwise
+            settingFactor  = exp * iso / apt.^2;
     end   
     
     % correct for exposure time, ISO setting (gain) and aperture
@@ -191,18 +205,26 @@ function vign = sub_getVignMat(camstring, height, width)
 
         % Calculate vignetting correction
         para    = elf_para;
-        TEMP    = load(fullfile(para.paths.calibfolder, lower(camstring), 'vign_calib.mat')); % holds pf, fitted vignetting-correction function
-        fr      = sub_feval(TEMP.pf(1, 1, :), exc) / sub_feval(TEMP.pf(1, 1, :), 0);
-        fg      = sub_feval(TEMP.pf(1, 2, :), exc) / sub_feval(TEMP.pf(1, 2, :), 0);
-        fb      = sub_feval(TEMP.pf(1, 3, :), exc) / sub_feval(TEMP.pf(1, 3, :), 0);
+        fname   = fullfile(para.paths.calibfolder, lower(camstring), 'vign_calib.mat');
+        if isfile(fname)
+            TEMP    = load(fname); % holds pf, fitted vignetting-correction function
+            pf = TEMP.pf;
+        else
+            warning('No vignetting calibration exists for this camera; not correcting for vignetting');
+            pf = cat(3, zeros(3, 3), zeros(3, 3), zeros(3, 3), ones(3, 3));
+        end
+        
+        fr      = sub_feval(pf(1, 1, :), exc) / sub_feval(pf(1, 1, :), 0);
+        fg      = sub_feval(pf(1, 2, :), exc) / sub_feval(pf(1, 2, :), 0);
+        fb      = sub_feval(pf(1, 3, :), exc) / sub_feval(pf(1, 3, :), 0);
         vign{1} = cat(3, fr, fg, fb);
-        fr      = sub_feval(TEMP.pf(2, 1, :), exc) / sub_feval(TEMP.pf(2, 1, :), 0);
-        fg      = sub_feval(TEMP.pf(2, 2, :), exc) / sub_feval(TEMP.pf(2, 2, :), 0);
-        fb      = sub_feval(TEMP.pf(2, 3, :), exc) / sub_feval(TEMP.pf(2, 3, :), 0);
+        fr      = sub_feval(pf(2, 1, :), exc) / sub_feval(pf(2, 1, :), 0);
+        fg      = sub_feval(pf(2, 2, :), exc) / sub_feval(pf(2, 2, :), 0);
+        fb      = sub_feval(pf(2, 3, :), exc) / sub_feval(pf(2, 3, :), 0);
         vign{2} = cat(3, fr, fg, fb);
-        fr      = sub_feval(TEMP.pf(3, 1, :), exc) / sub_feval(TEMP.pf(3, 1, :), 0);
-        fg      = sub_feval(TEMP.pf(3, 2, :), exc) / sub_feval(TEMP.pf(3, 2, :), 0);
-        fb      = sub_feval(TEMP.pf(3, 3, :), exc) / sub_feval(TEMP.pf(3, 3, :), 0);
+        fr      = sub_feval(pf(3, 1, :), exc) / sub_feval(pf(3, 1, :), 0);
+        fg      = sub_feval(pf(3, 2, :), exc) / sub_feval(pf(3, 2, :), 0);
+        fb      = sub_feval(pf(3, 3, :), exc) / sub_feval(pf(3, 3, :), 0);
         vign{3} = cat(3, fr, fg, fb);
         
         storedVign = vign;
