@@ -19,7 +19,7 @@ saveJpgs        = false;                                              % save ind
 %% check inputs
 if nargin < 4, rotation = 0; end
 if nargin < 3, verbose = false; end
-if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
+if nargin < 2 || isempty(imgFormat), imgFormat = "*.dng"; end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
                     Logger.log(LogLevel.INFO, '\n');
@@ -29,7 +29,7 @@ if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset na
 para            = elf_para('', dataSet, imgFormat, verbose);
 info            = elf_info_collect(para.paths.datapath, imgFormat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
 infoSum         = elf_info_summarise(info, false);                  % summarise EXIF information for this dataset. This will be saved for later use below
-infoSum.linims  = strcmp(imgFormat, '*.dng');                         % if linear images are used, correct for that during plotting
+infoSum.linims  = strcmp(imgFormat, "*.dng");                         % if linear images are used, correct for that during plotting
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
                     Logger.log(LogLevel.INFO, '      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
 

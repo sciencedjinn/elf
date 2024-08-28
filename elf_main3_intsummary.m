@@ -14,7 +14,7 @@ function elf_main3_intsummary(dataSet, imgFormat)
 %       6s total
 
 %% check inputs
-if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
+if nargin < 2 || isempty(imgFormat), imgFormat = "*.dng"; end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
                     Logger.log(LogLevel.INFO, '\b\b\b\b\b\b\b\b\b\b\b\b\b\n');

@@ -9,7 +9,7 @@ function para = elf_para(rootdir, dataset, imgformat, verbose)
 
 %% defaults
 if nargin < 4, verbose = false; end
-if nargin < 3, imgformat = ''; end
+if nargin < 3, imgformat = ""; end
 if nargin < 2, dataset = ''; end
 if nargin < 1, rootdir = ''; end
 
@@ -41,9 +41,9 @@ else
 end
 
 %% define further folder structure
-para.paths.matfolder        = 'mat';            % subfolder of data folder into which to save the .mat descriptor files (and individual .pdf files, if activated) 
-para.paths.filtfolder       = 'filt';           % subfolder of data folder into which to save the filtered images 
-para.paths.scenefolder      = 'scenes';         % subfolder of data folder into which to save the filtered images 
+para.paths.matfolder        = "mat";            % subfolder of data folder into which to save the .mat descriptor files (and individual .pdf files, if activated) 
+para.paths.filtfolder       = "filt";           % subfolder of data folder into which to save the filtered images 
+para.paths.scenefolder      = "scenes";         % subfolder of data folder into which to save the filtered images 
 para.paths.calibfolder      = fullfile(fileparts(mfilename('fullpath')), '..', 'calibration');
 
 %% if this is called for a specific dataset, store that information

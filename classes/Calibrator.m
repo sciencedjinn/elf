@@ -48,7 +48,7 @@ classdef Calibrator
                     
                     % 2. ISO/EXP/APT 2016 calibration
                     para    = elf_para;
-                    TEMP    = load(fullfile(para.paths.calibfolder, lower('nikon d810'), 'absolute.mat'));
+                    TEMP    = load(fullfile(para.paths.calibfolder, 'nikon d810', 'absolute.mat'));
                     obj.AbsoluteFactor = TEMP.wlcf;
                     
                     % 3. Vignetting

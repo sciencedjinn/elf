@@ -21,10 +21,10 @@ switch extractBefore(fmt, 2) %% TODO
         % this is the format we need; do nothing
     case "."
         % add a star in front
-        fmt = strcat("*", fmt);
+        fmt = "*"+fmt;
     otherwise
         % assume that it starts with a letter
-        fmt = strcat("*.", fmt);
+        fmt = "*."+fmt;
 end
 
 if exist(foldname, 'file') ~= 7
