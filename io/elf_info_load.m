@@ -10,17 +10,17 @@ warning('off', 'imageio:tifftagsread:badTagValueDivisionByZero');
 info = imfinfo(fullfilename); % get exif info
 warning(temp); % turn warnings back on
 
-[~,~,ext] = fileparts(fullfilename); % using info.Format does not work for raw files, as they are usually tif format
+[~, ~, ext] = fileparts(fullfilename); % using info.Format does not work for raw files, as they are usually tif format
 
-switch lower(ext(2:end))
-    case {'tif', 'tiff'}
+switch lower(ext)
+    case {'.tif', '.tiff'}
         info = info(1);
         info.ColorMatrix2       = 0;
-    case {'jpg', 'jpeg'}
+    case {'.jpg', '.jpeg'}
         info.BitsPerSample      = ones(1, info.NumberOfSamples) * info.BitDepth / info.NumberOfSamples;
         info.SamplesPerPixel    = info.NumberOfSamples;
         info.ColorMatrix2       = 0;
-    case 'dng'
+    case '.dng'
         % DNGs have only thumbnail info in the main info structure.
         % Copy all fields from info.SubIFDs to info.
         fieldstocopy = fieldnames(info.SubIFDs{1});
@@ -31,13 +31,13 @@ switch lower(ext(2:end))
         info.Width              = info.DefaultCropSize(1);
         info.Height             = info.DefaultCropSize(2);
         info.SamplesPerPixel    = 3;
-    case 'nef'
+    case '.nef'
         %same as dng, but the info seems to be in SubIFDs{2}
         fieldstocopy = fieldnames(info.SubIFDs{2});
         for i = 1:length(fieldstocopy)
             info.(fieldstocopy{i}) = info.SubIFDs{2}.(fieldstocopy{i});
         end
-    case 'cr2'
+    case '.cr2'
         %same as dng, but the info seems to be in SubIFDs{2}
         info = info(1); %FIXME
 %         fieldstocopy = fieldnames(info.SubIFDs{2});

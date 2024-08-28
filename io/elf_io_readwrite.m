@@ -68,23 +68,23 @@ function data = elf_io_readwrite(para, action, fname, varinput)
 switch action
     case 'createfilenames' % para = elf_io_readwrite(para, 'createfilenames')
         [~, ds, ext] = fileparts(para.paths.dataset);
-        ds = [ds ext]; % make sure dots and names after the dot don't get lost
-        para.paths.fname_infosum_mat  = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_info.mat']);   % save file for the infosum and para structures
+        ds = strcat(ds, ext); % make sure dots and names after the dot don't get lost
+        para.paths.fname_infosum_mat  = fullfile(para.paths.datapath, para.paths.matfolder, strcat(ds, '_info.mat'));   % save file for the infosum and para structures
         
-        para.paths.fname_meanimg_tif  = fullfile(para.paths.outputfolder, [ds '_mean_image.tif']);
-        para.paths.fname_meanimg_jpg  = fullfile(para.paths.outputfolder_pub, [ds '_mean_image.jpg']);
-        para.paths.fname_meanimg_ind  = fullfile(para.paths.outputfolder, [ds '_mean_image_ind.tif']);
+        para.paths.fname_meanimg_tif  = fullfile(para.paths.outputfolder, strcat(ds, '_mean_image.tif'));
+        para.paths.fname_meanimg_jpg  = fullfile(para.paths.outputfolder_pub, strcat(ds, '_mean_image.jpg'));
+        para.paths.fname_meanimg_ind  = fullfile(para.paths.outputfolder, strcat(ds, '_mean_image_ind.tif'));
         
-        para.paths.fname_meanvep_pdf  = fullfile(para.paths.outputfolder, [ds '_mean.pdf']);
-        para.paths.fname_meanvep_jpg  = fullfile(para.paths.outputfolder_pub, [ds '_mean.jpg']);
+        para.paths.fname_meanvep_pdf  = fullfile(para.paths.outputfolder, strcat(ds, '_mean.pdf'));
+        para.paths.fname_meanvep_jpg  = fullfile(para.paths.outputfolder_pub, strcat(ds, '_mean.jpg'));
         
-        para.paths.fname_meanivep_pdf = fullfile(para.paths.outputfolder, [ds '_meanint.pdf']);
-        para.paths.fname_meanivep_jpg = fullfile(para.paths.outputfolder_pub, [ds '_meanint.jpg']);
+        para.paths.fname_meanivep_pdf = fullfile(para.paths.outputfolder, strcat(ds, '_meanint.pdf'));
+        para.paths.fname_meanivep_jpg = fullfile(para.paths.outputfolder_pub, strcat(ds, '_meanint.jpg'));
         
-        para.paths.fname_stats        = fullfile(para.paths.outputfolder, [ds '_stats.csv']);
-        para.paths.fname_meanres      = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_meanres.mat']);
-        para.paths.fname_meanres_int  = fullfile(para.paths.datapath, para.paths.matfolder, [ds '_meanres_int.mat']);
-        para.paths.fname_collres      = fullfile(para.paths.outputfolder, [ds '_collres.mat']);
+        para.paths.fname_stats        = fullfile(para.paths.outputfolder, strcat(ds, '_stats.csv'));
+        para.paths.fname_meanres      = fullfile(para.paths.datapath, para.paths.matfolder, strcat(ds, '_meanres.mat'));
+        para.paths.fname_meanres_int  = fullfile(para.paths.datapath, para.paths.matfolder, strcat(ds, '_meanres_int.mat'));
+        para.paths.fname_collres      = fullfile(para.paths.outputfolder, strcat(ds, '_collres.mat'));
         
         % all other filenames are calculated dynamically each iteration
         data                         = para; % return para
