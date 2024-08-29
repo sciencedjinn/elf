@@ -19,8 +19,8 @@ numeric_fields_to_read = {'Width', 'Height', 'SamplesPerPixel', 'bpc'};
 numeric_fields_to_read_onlyone = [1 1 1 1 1]; % 1 means there will be a warning if more than one unique value is found
 matrix_fields_to_read = {'ColorMatrix2'};
 matrix_fields_to_read_onlyone = 1;
-char_fields_to_read = {'Format', 'Model', 'class'};
-char_fields_to_read_onlyone = [1 1 1];
+char_fields_to_read = {'Format', 'Model', 'UniqueCameraModel', 'CameraSerialNumber', 'class'};
+char_fields_to_read_onlyone = [1 1 1 1 1];
 
 % and then there are several subfields of .DigitalCamera to read
 numeric_fields_to_read_dc = {'FNumber', 'ExposureTime', 'ISOSpeedRatings', 'ExposureBiasValue', 'FocalLength'};

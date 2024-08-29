@@ -3,7 +3,7 @@ function para = elf_para(rootdir, dataset, imgformat, verbose)
 % 
 %
 % if called without dataset, just collects basic info
-% rootdir = NaN or rootdir = 'reset' means reset all local folders
+% rootdir = NaN or rootdir = 'reset' means reset all local folders; 'noenv' means just return the default parameters, don't read .env file
 % empty rootdir means load all saved folders
 % rootdir = 'prompt' means prompt for root dir but use saved output folders
 
@@ -17,12 +17,12 @@ if nargin < 1, rootdir = ''; end
 mayusegpu = false; % this flag can be used to manually (de-)activate use of GPU computing
 [para.syst, para.thisv, para.usegpu] = elf_versioncheck(verbose, mayusegpu); % Check operating system and Matlab version
 
-if any(isnan(rootdir)) || strcmp(rootdir, 'reset')
+if ~isa(rootdir, "string") && any(isnan(rootdir)) || strcmp(rootdir, 'reset')
     % reset and prompt for all local input/output folders
     para.paths.root             = elf_io_localpaths('loadroot', true);
     para.paths.outputfolder     = elf_io_localpaths('loadoutput', true);
     para.paths.outputfolder_pub = elf_io_localpaths('loadoutput_pub', true);
-elseif any(isempty(rootdir))
+elseif any(isempty(rootdir)) || strcmp(rootdir, 'noenv')
     % use saved input/output folders
     para.paths.root             = elf_io_localpaths('loadroot', false);
     para.paths.outputfolder     = elf_io_localpaths('loadoutput', false);
@@ -54,14 +54,19 @@ if ~isempty(dataset)
     para                    = elf_io_readwrite(para, 'createfilenames');
 end
 
-%% load .env files
-para.ana  = elf_analysisPara; % analysis parameters (all ELF analysis has to be rerun if these are changed)
-para.plot = elf_plottingPara; % plotting parameters (will be loaded again at plotting time)
 
 %% gui parameters
 para.gui.pnum_cols = 8; % 8 tiles horizontally
 para.gui.pnum_rows = 6; % 6 tiles vertically
 para.gui.smallsize = 200; % size of small preview images in ELF gui
+
+%% load .env files
+if strcmp(rootdir, 'noenv')
+    return
+end
+
+para.ana  = elf_analysisPara; % analysis parameters (all ELF analysis has to be rerun if these are changed)
+para.plot = elf_plottingPara; % plotting parameters (will be loaded again at plotting time)
 
 %% projection constants (don't change)
 para.azi                    = -90:.1/para.ana.resolutionBooster:90;          % regular elevation sampling for equirectangular projection
@@ -92,7 +97,8 @@ para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual hist
                                         %              This method has the problem that some pixels might contribute more than once, while others never contribute.
                                         % 'hdr'      - Calculate histograms from the HDR image.
 para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'allvalid2', 'noise'                               
-                       
+
+
 
 
 

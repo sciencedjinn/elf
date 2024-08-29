@@ -2,7 +2,7 @@ function im_raw = elf_io_loaddng(fullfilename, sensorAlignment)
 % ELF_IO_LOADDNG reads DNG (digital negative) image files
 %   Images are demosaiced, and EXIF linearisation tables are applied, if applicable.
 %   No further linearisation or white balancing or colour space conversion is performed.
-%   See elf_calibrate_abssens for all further calibration.
+%   See Calibrator for all further calibration.
 %   Algorithm adapted from Rob Sumner (2014) "Processing RAW Images in
 %   MATLAB", https://rcsumner.net/raw_guide/RAWguide.pdf
 %   The DNG files can be created from any raw camera format with the Adobe
@@ -17,7 +17,7 @@ function im_raw = elf_io_loaddng(fullfilename, sensorAlignment)
 % Outputs:
 % im_raw            - output image array (NxMx3 uint16)
 %
-% See also elf_info_load, elf_io_imread, elf_io_correctdng, elf_calibrate_abssens.
+% See also elf_info_load, elf_io_imread, elf_io_correctdng, Calibrator.
 
 %% check inputs
 if nargin < 2 || isempty(sensorAlignment), sensorAlignment = 'rggb'; end % sensorAlignment can be 'gbrg'/'grbg'/'bggr'/'rggb'
