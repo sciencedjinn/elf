@@ -1,87 +1,42 @@
 classdef Calibrator
-    %CALIBRATOR Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    % FYI
-    % ELF_CALIBRATE_ABSSENS transforms a raw digital image to absolute spectral photon luminance (in photons/nm/s/sr/m^2)
-    % For a full calibration, elf_calibrate_spectral has to be called afterwards!
-    %
-    % [im, conf, conffactors] = elf_calibrate_abssens(im, info)
-    %
-    % Inputs:
-    %   im          - M x N x 3 double, raw digital image (as obtained from elf_io_loaddng)
-    %   info        - 1 x 1 struct, info structure, containing the exif information of the raw image file (created by elf_info_collect or elf_info_load)
-    %   blackLevel  - 1 x 3 double, the black level, i.e. the number of counts that need to be subtracted from the raw counts, for this image, for each channel; 
-    %                   obtained from calibration or dark images    
-    % Outputs:
-    %   im          - M x N x 3 double, calibrated digital image (in photons/nm/s/sr/m^2), but not spectrally corrected
-    %   conf        - M x N x 3 double, an estimate of confidence based on noise for each pixel (used for HDR calculations)
-    %   confFactors - 2 x 1 double, the combined calibration factor (correcting for exp/iso/apt) and the saturation limit (minus dark)
+    % CALIBRATOR represents calibration information for a calibrated camera
+    % to transform raw digital images to absolute spectral photon luminance (in photons/nm/s/sr/m^2)
     %
     % Call sequence: elf -> elf_main1_HdrAndInt -> Calibrator
     %
-    % See also: elf_main1_HdrAndInt, elf_info_load, elf_io_loaddng, elf_calibrate_spectral
-
-    % ELF_CALIBRATE_SPECTRAL performs colour correction on an otherwise calibrated image
-    % 
-    % im = elf_calibrate_spectral(im, info, method)
-    %
-    % Inputs:
-    %   im          - M x N x 3 double, calibrated digital image (as obtained from Calibrator)
-    %   info        - 1 x 1 struct, info structure, containing the exif information of the raw image file (created by elf_info_collect or elf_info_load)
-    %   method      - 'col' (default) - each channel of the output image represents the weighted mean over that pixels sensitivity function, assuming a flat spectrum over its full range
-    %                 'colmat'        - solves the linear equation of all three channels to calculate a spectrum that is flat between 400-500/500-600/600-700nm and would create the same camera output
-    %                                   This method theoretically creates the most interesting result, but is extremely sensitive to saturation in individual channels and can not be recommended for
-    %                                   general use outside of laboratory situations
-    %                 'wb'            - simply applies the normal white balance suggested by the camera
-    %       
-    % Outputs:
-    %   im          - M x N x 3 double, calibrated digital image (in photons/nm/s/sr/m^2)
-    %
-    % Call sequence: elf -> elf_main1_HdrAndInt -> elf_calibrate_spectral
-    %
-    % See also: elf_main1_HdrAndInt, elf_info_load, elf_io_loaddng, Calibrator
-
-
-    % ELF_CALIBRATE_SPECTRAL performs colour correction on an otherwise calibrated image
-    % 
-    % im = elf_calibrate_spectral(im, info, method)
-    %
-    % Inputs:
-    %   im          - M x N x 3 double, calibrated digital image (as obtained from Calibrator)
-    %   info        - 1 x 1 struct, info structure, containing the exif information of the raw image file (created by elf_info_collect or elf_info_load)
-    %   method      - 'col' (default) - each channel of the output image represents the weighted mean over that pixels sensitivity function, assuming a flat spectrum over its full range
-    %                 'colmat'        - solves the linear equation of all three channels to calculate a spectrum that is flat between 400-500/500-600/600-700nm and would create the same camera output
-    %                                   This method theoretically creates the most interesting result, but is extremely sensitive to saturation in individual channels and can not be recommended for
-    %                                   general use outside of laboratory situations
-    %                 'wb'            - simply applies the normal white balance suggested by the camera
-    %       
-    % Outputs:
-    %   im          - M x N x 3 double, calibrated digital image (in photons/nm/s/sr/m^2)
-    %
-    % Call sequence: elf -> elf_main1_HdrAndInt -> elf_calibrate_spectral
-    %
-    % See also: elf_main1_HdrAndInt, elf_info_load, elf_io_loaddng, Calibrator
-
-    properties
-        AbsoluteFactor
-        AbsoluteMat
-        VignettingMat
-        Acf     % Aperture correction factor in new d850 calibration
-        SpectralMatrix
-        SpectralMethod
-    end
+    % See also: elf_main1_HdrAndInt, elf_info_load, elf_io_loaddng
 
     properties(SetAccess=immutable)
         CameraString
         Height
         Width
+        SpectralMethod
+    end
+
+    properties(Access=protected)
+        AbsoluteFactor
+        AbsoluteMat
+        VignettingMat
+        Acf     % Aperture correction factor in new d850 calibration
+        SpectralMatrix
     end
     
+    %%%%%%%%%%%%%%%%%
+    %% CONSTRUCTOR %%
+    %%%%%%%%%%%%%%%%%
     methods
         function obj = Calibrator(camString, wh, spectralMethod)
             %CALIBRATOR Construct an instance of this class
             %   Detailed explanation goes here
+            % Inputs:
+            %   camString   - camera model (can be extracted from info.Model or infoSum.Model)
+            %   wh          - width and height of images (can be extracted from info.Width and info.Height)
+            %   method      - 'col' (default) - each channel of the output image represents the weighted mean over that pixels sensitivity function, assuming a flat spectrum over its full range
+            %                 'colmat'        - solves the linear equation of all three channels to calculate a spectrum that is flat between 400-500/500-600/600-700nm and would create the same camera output
+            %                                   This method theoretically creates the most interesting result, but is extremely sensitive to saturation in individual channels and can not be recommended for
+            %                                   general use outside of laboratory situations
+            %                 'wb'            - simply applies the normal white balance suggested by the camera
+
             if nargin<3, spectralMethod = "col"; end
             Logger.log(LogLevel.INFO, 'Creating a Calibrator object for %s camera\n', camString)
             obj.CameraString = camString;
@@ -98,6 +53,20 @@ classdef Calibrator
     %%%%%%%%%%%%%%%%%%%%
     methods
         function [im, conf, confFactors] = applyAbsolute(obj, im, info)
+            % Calibrator.applyAbsolute applies absolute calibration information to a raw photograph.
+            % [im, conf, conffactors] = obj.applyAbsolute(im, info)
+            % For a full calibration, obj.applySpectral must be applied afterwards (or after HDR calculation, if desired)
+            %
+            % Inputs:
+            %   im          - M x N x 3 double, raw digital image (as obtained from elf_io_loaddng)
+            %   info        - 1 x 1 struct, info structure, containing the exif information of the raw image file (created by elf_info_collect or elf_info_load)
+            %                 info must contain a field .blackLevels, a 1 x 3 double, containing the black level for each colour channel, 
+            %                 i.e. the number of counts that need to be subtracted from the raw counts, for this image, for each channel; 
+            %                   obtained from calibration or dark images    
+            % Outputs:
+            %   im          - M x N x 3 double, calibrated digital image (in photons/nm/s/sr/m^2), but not spectrally corrected
+            %   conf        - M x N x 3 double, an estimate of confidence based on noise for each pixel (used for HDR calculations)
+            %   confFactors - 2 x 1 double, the combined calibration factor (correcting for exp/iso/apt) and the saturation limit (minus dark)
 
             % Extract camera parameters and calibration factors
             exp         = info.DigitalCamera.ExposureTime;      % exposure time in seconds
@@ -125,7 +94,7 @@ classdef Calibrator
                 case 'nikon d850'
         
                     % 2. ISO/EXP/APT calibration
-                    acf     = obj.Acf(obj.Acf(:, 1)==apt, 2);
+                    acf = obj.Acf(obj.Acf(:, 1)==apt, 2);
                     settingFactor  = exp * iso * acf;
                 
                 otherwise
@@ -138,19 +107,31 @@ classdef Calibrator
             % correct for vignetting
             switch apt
                 case {3.5, 4, 4.5, 4.8, 5.6}
-                    apInd     = 1; % treat as aperture 3.5 for vignetting
+                    apInd = 1; % treat as aperture 3.5 for vignetting
                 case {8, 9, 10, 11, 14}
-                    apInd     = 2; % treat as aperture 8 for vignetting
+                    apInd = 2; % treat as aperture 8 for vignetting
                 case 22
-                    apInd     = 3; % treat as aperture 22 for vignetting
+                    apInd = 3; % treat as aperture 22 for vignetting
                 otherwise
                     error('Aperture %g currently not supported.', apt);
             end
-            im          = im ./ obj.VignettingMat{apInd};
-        
+            im = im ./ obj.VignettingMat{apInd};        
         end
 
+
         function im = applySpectral(obj, im, info)
+            % Calibrator.applySpectral applies absolute spectral information to a pre-calibrated photograph.
+            % im = obj.applySpectral(im, info)
+            % For a full calibration, this should be applied after obj.applyAbsolute has been applied
+            %
+            % Inputs:
+            %   im          - M x N x 3 double, calibrated digital image (as obtained from Calibrator)
+            %   info        - 1 x 1 struct, info structure, containing the exif information of the raw image file (created by elf_info_collect or elf_info_load)
+            %       
+            % Outputs:
+            %   im          - M x N x 3 double, calibrated digital image (in photons/nm/s/sr/m^2)
+            %
+            % See also: elf_main1_HdrAndInt, elf_info_load, elf_io_loaddng
 
             % warning('Using standard D810 colour matrix'); 
             % wb_multipliers = [1.9531 1.0000 1.3359];
@@ -188,10 +169,8 @@ classdef Calibrator
                     % Apply the "As shot" white balance to correct for sensitivity differences in R, G and B pixels
                     im(:, :, 1)     = im(:, :, 1) * wb_multipliers(1);
                     im(:, :, 2)     = im(:, :, 2) * wb_multipliers(2);
-                    im(:, :, 3)     = im(:, :, 3) * wb_multipliers(3);
-                    
+                    im(:, :, 3)     = im(:, :, 3) * wb_multipliers(3);                    
             end
-
         end
     end
 
@@ -238,7 +217,7 @@ classdef Calibrator
                     warning('No intensity calibration available for this camera (%s) ', obj.CameraString);
             end
 
-            % calculate mats for faster calibration later
+            % pre-calculate mats for faster calibration later
             Logger.log(LogLevel.INFO, '\tCreating/loading absolute sensitivity correction matrix\n')
             obj.AbsoluteMat = Calibrator.getAbsoluteMat(obj.CameraString, obj.Height, obj.Width, obj.AbsoluteFactor);
         end
