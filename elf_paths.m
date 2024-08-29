@@ -13,6 +13,7 @@ thispath = fileparts(mfilename('fullpath'));
 addpath(thispath);
 addpath(fullfile(thispath, 'analysis'));
 addpath(fullfile(thispath, 'calibration'));
+addpath(fullfile(thispath, 'classes'));
 addpath(fullfile(thispath, 'config'));
 addpath(fullfile(thispath, 'gui'));
 addpath(fullfile(thispath, 'help'));
@@ -20,4 +21,5 @@ addpath(fullfile(thispath, 'io'));
 addpath(fullfile(thispath, 'plot'));
 addpath(fullfile(thispath, 'project'));
 addpath(genpath(fullfile(thispath, 'support')));
+addpath(genpath(fullfile(thispath, 'tools')));
 addpath(genpath(fullfile(thispath, 'modules'))); % add all installed modules
