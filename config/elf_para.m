@@ -3,7 +3,7 @@ function para = elf_para(rootdir, dataset, imgformat, verbose)
 % 
 %
 % if called without dataset, just collects basic info
-% rootdir = NaN or rootdir = 'reset' means reset all local folders; 'noenv' means just return the default parameters, don't read .env file
+% rootdir = NaN or rootdir = 'reset' means reset all local folders; rootdir = 'noenv' means just return the default parameters, don't read .env file
 % empty rootdir means load all saved folders
 % rootdir = 'prompt' means prompt for root dir but use saved output folders
 
