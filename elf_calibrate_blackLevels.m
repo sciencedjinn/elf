@@ -1,5 +1,5 @@
-function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgformat)
-% ELF_CALIBRATE_BLACKLEVELS detects and loads dark images, if they are present
+function [info, srcs, warnings] = elf_calibrate_blackLevels(info, imgformat)
+% ELF_CALIBRATE_BLACKLEVELS detects and loads dark images, if they are present. Results are directly written into info as a blackLevels field
 %
 % Inputs:
 %   info - 1 x n info structure, containing the exif information of the raw image files (created by elf_info_collect)
@@ -20,7 +20,7 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
             calibfilefolder = para.paths.calibfolder; % Where to find the finished calibration files
             load(fullfile(calibfilefolder, 'nikon d810', 'noise.mat'), 'rf_mean'); 
 
-            blackLevel = 600 * ones(length(iso), 3);
+            blackLevels = 600 * ones(length(iso), 3);
     
             % 1 (ISO<=6400, EXP<=1): Dark level is within +-10 counts of 400, so accept these
             sel = iso<=6400 & exp<=1;
@@ -28,11 +28,11 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
             for c = 1:3
                 XX = [ones(length(iso), 1) iso(:) exp(:) iso(:).*exp(:)];
                 calibLevels = XX*rf_mean{c};
-                blackLevel(sel, c) = calibLevels(sel); 
+                blackLevels(sel, c) = calibLevels(sel); 
             end
     
         case 'nikon d850'        
-            blackLevel = 400 * ones(length(iso), 3);
+            blackLevels = 400 * ones(length(iso), 3);
         
             % 1 (ISO<=1600, EXP<=1): Dark level is within +-10 counts of 400, so accept these
             srcs(iso<=1600 & exp<=1) = 1; % 1: iso<=1600 and exp<=1; here, calib shows that noise is low
@@ -40,16 +40,20 @@ function [blackLevel, srcs, warnings] = elf_calibrate_blackLevels(info, imgforma
         otherwise
             % For an unknown camera format, try with the manufacturer-supplied black level
             Logger.log(LogLevel.INFO, '          No calibration exists for this camera.\n');
-            blackLevel = nan(length(iso), 3);
+            blackLevels = nan(length(iso), 3);
             for i = 1:length(iso)
-                blackLevel(i, :) = info(i).SubIFDs{1}.BlackLevel(1) * ones(1, 3);   % black level saved by camera in exif file. This seems to very closely correspond to measured readout noise
+                blackLevels(i, :) = info(i).SubIFDs{1}.BlackLevel(1) * ones(1, 3);   % black level saved by camera in exif file. This seems to very closely correspond to measured readout noise
             end
             uncalibrated = true;
     end
 
     % 2 (dark images): Load all dark images and apply them
     dark = sub_loadDarkImages(darkFolder, imgformat);
-    [blackLevel, srcs, warnings] = sub_applyDarkImages(blackLevel, srcs, dark, iso, exp, t);
+    [blackLevels, srcs, warnings] = sub_applyDarkImages(blackLevels, srcs, dark, iso, exp, t);
+
+    % 2.5 distribute blackLevels to info struct
+    blackLevels_cell = arrayfun(@(i) blackLevels(i, :), 1:size(blackLevels, 1), 'UniformOutput', false);
+    [info(:).blackLevels] = blackLevels_cell{:};
 
     % 3: log messages/warnings
     if uncalibrated
