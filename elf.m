@@ -16,8 +16,8 @@ useoldfolder = true;
 verbose = false;
 
 vMajor = 1;
-vMinor = 1;
-vPatch = 2;
+vMinor = 2;
+vPatch = 0;
 fprintf('Starting ELF %d.%d.%d\n', vMajor, vMinor, vPatch);
 
 %% parameters

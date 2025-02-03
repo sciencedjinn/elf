@@ -5,10 +5,8 @@
 %               im2uint8   - Image Processing Toolbox
 %
 % Files
-%   elf_calibrate_abssens                   - Performs absolute sensitivity calibration and corrects vignetting
-%   elf_calibrate_spectral                  - Performs colour correction on an otherwise calibrated image
-%   elf_calibrate_darkandreadout            - Returns an estimate of dark noise, and the saturation limit, for a given camera setting
-%
+%   Calibrator                   - Performs absolute&spectral sensitivity calibration and corrects vignetting
+
 %   elf_info_load                           - Loads EXIF information for an image file and returns a struct
 %   elf_info_collect                        - Collects the file information for all image files of a given type in a given folder and returns a struct array
 %   elf_info_summarise                      - Summarises EXIF information from an EXIF struct array

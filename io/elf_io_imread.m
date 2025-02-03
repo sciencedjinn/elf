@@ -16,10 +16,10 @@ if nargin < 2, ignoreErrors = false; end % throw an error if any error occurs (s
 
 [~,~,ext] = fileparts(fullfilename); % using info.Format does not work for raw files, as they are usually tif format
 errorOccurred = '';
-switch lower(ext(2:end))
-    case {'tif', 'tiff', 'jpg', 'jpeg', 'bmp', 'gif', 'png', 'ppm'}
+switch lower(ext)
+    case {'.tif', '.tiff', '.jpg', '.jpeg', '.bmp', '.gif', '.png', '.ppm'}
         im = imread(fullfilename);
-    case 'dng'
+    case '.dng'
         try
             im = elf_io_loaddng(fullfilename);
         catch err
@@ -53,9 +53,9 @@ switch lower(ext(2:end))
                 end
             end
         end
-    case 'nef'
+    case '.nef'
         im = zeros(3, 3, 3); % just something to display a black image in ELF maingui
-    case {'cr2', 'crw', 'kdc', 'arw', 'srf', 'sr2', 'bay', 'dcs', 'dcr', 'drf', 'k25', 'nrw', 'orf', 'pef', 'ptx', 'raw', 'rw2', 'rwl'}
+    case {'.cr2', '.crw', '.kdc', '.arw', '.srf', '.sr2', '.bay', '.dcs', '.dcr', '.drf', '.k25', '.nrw', '.orf', '.pef', '.ptx', '.raw', '.rw2', '.rwl'}
         % these are the most common raw formats for Canon/Nikon/Casio/Sony/Kodak/Olympus/Pentax/Panasonic/Minolta cameras
         error('ELF currently does not process %s files, but it should be possible using dcraw. Create an entry in elf_io_imread.m');
     otherwise

@@ -90,7 +90,7 @@ switch hdrmethod
     case 'noise'
         %% NOISE METHOD: each pixel is the weighted average of the same pixel in different exposures.
         % Weights depend on the inverse of the modelled noise (currently: simply the square root of the raw count).
-        % Saturated pixels had their confidence set to NaN in elf_calibrate_abssens.
+        % Saturated pixels had their confidence set to NaN in Calibrator.apply.
         fullsat = zeros(size(conf));
         for ch = 1:size(rawWhiteLevels, 1)
             for im = 1:size(rawWhiteLevels, 2)

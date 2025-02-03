@@ -6,14 +6,14 @@ function elf_mainX_explore(dataset, imgformat, frange, verbose)
 %% Set up paths and file names
 if nargin < 4 || isempty(verbose), verbose = false; end
 if nargin < 3 || isempty(frange), frange = []; end
-if nargin < 2 || isempty(imgformat), imgformat = '*.dng'; end
+if nargin < 2 || isempty(imgformat), imgformat = "*.dng"; end
 
 %%
 fprintf('----- ELF Step X: Explore -----\n');
 fprintf('      Processing data set %s\n', dataset);
 
 %% House-keeping and initialisations
-res.calib       = strcmp(imgformat, '*.dng');
+res.calib       = strcmp(imgformat, "*.dng");
 
 %% Set up paths and file names; read info, infosum and para
 elf_paths;

@@ -98,9 +98,10 @@ end
     % returns only the extension of a given filename (without .)
     % or an empty string if it was ., .. or a folder
 
-        [~, ~, ext] = fileparts(filename);
-        ext = ext(2:end);
-
+        [~, ~, ext] = fileparts(string(filename));
+        if ext ~= ""
+            ext = extractAfter(ext, 1);
+        end
     end
 
     function nested_cb(src, ~)

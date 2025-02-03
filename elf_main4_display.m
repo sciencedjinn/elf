@@ -3,7 +3,7 @@ function elf_main4_display(dataSet, imgFormat)
 %
 % elf_main4_display(dataSet, imgFormat)
 
-if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
+if nargin < 2 || isempty(imgFormat), imgFormat = "*.dng"; end
 
           elf_paths;
 para    = elf_para('', dataSet, imgFormat);

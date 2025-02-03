@@ -6,24 +6,25 @@ function [info, valid] = elf_info_collect(foldname, fmt)
 %
 % Input:
 % foldname - full path of a folder
-% fmt - image format, e.g. '*.tif'
+% fmt - image format, e.g. "*.tif"
 %
 % Output:
 % info - info structure containing exif data
 %
 % Uses: elf_info_load
 
-if nargin < 2, fmt = 'dng'; end
+if nargin < 2 || fmt=="", fmt = "dng"; end
+fmt = string(fmt);
 
-switch fmt(1)
-    case '*'
+switch extractBefore(fmt, 2) %% TODO
+    case "*"
         % this is the format we need; do nothing
-    case '.'
+    case "."
         % add a star in front
-        fmt = ['*' fmt];
+        fmt = "*"+fmt;
     otherwise
         % assume that it starts with a letter
-        fmt = ['*.' fmt];
+        fmt = "*."+fmt;
 end
 
 if exist(foldname, 'file') ~= 7

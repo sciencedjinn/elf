@@ -3,7 +3,7 @@ function elf_main1_HdrAndInt(dataSet, imgFormat, verbose, rotation)
 % scenes, and calculates HDR representations of these scenes as mat for later contrast calculations and as tif for the mean image. 
 % Intensity descriptors are calculated for each exposure and then combined for scenes based on individual pixel reliability.
 %
-% Uses: elf_paths, elf_support_logmsg, elf_para, elf_info_collect, 
+% Uses: elf_paths, elf_para, elf_info_collect, 
 %       elf_info_summarise, elf_hdr_brackets, elf_project_image, 
 %       elf_io_readwrite, elf_hdr_calcHDR, elf_io_correctdng, elf_io_imread
 %       elf_analysis_int, elf_support_formatA4l
@@ -19,19 +19,19 @@ saveJpgs        = false;                                              % save ind
 %% check inputs
 if nargin < 4, rotation = 0; end
 if nargin < 3, verbose = false; end
-if nargin < 2 || isempty(imgFormat), imgFormat = '*.dng'; end
+if nargin < 2 || isempty(imgFormat), imgFormat = "*.dng"; end
 if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset name'); end 
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                    elf_support_logmsg('----- ELF Step 1: Calibration, HDR and Intensity -----\n')
+                    Logger.log(LogLevel.INFO, '\n');
+                    Logger.log(LogLevel.INFO, '----- ELF Step 1: Calibration, HDR and Intensity -----\n')
 
 %% Set up paths and file names; read info, infosum and para, calculate sets
 para            = elf_para('', dataSet, imgFormat, verbose);
 info            = elf_info_collect(para.paths.datapath, imgFormat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
 infoSum         = elf_info_summarise(info, false);                  % summarise EXIF information for this dataset. This will be saved for later use below
-infoSum.linims  = strcmp(imgFormat, '*.dng');                         % if linear images are used, correct for that during plotting
+infoSum.linims  = strcmp(imgFormat, "*.dng");                         % if linear images are used, correct for that during plotting
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
-                    elf_support_logmsg('      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
+                    Logger.log(LogLevel.INFO, '      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
 
 %% Set up projection constants
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
@@ -39,7 +39,8 @@ sets            = elf_hdr_brackets(info);                             % determin
 [projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
 
 %% Calculate black levels for all images (from calibration or dark images)
-[infoSum.blackLevels, blackLevelSource, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
+[info, ~, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
+cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourcalibtype);
 elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
 
 %% Step 1: Unwarp images and calculate HDR scenes
@@ -59,23 +60,23 @@ for iSet = 1:size(sets, 1)
     rawWhiteLevels = zeros(3, nIms);        % pre-allocate; raw white levels (after black subtraction)
     
     for i = 1:nIms % for each image in this set
-        % Load image        
+        % Load image
         imNo                    = setStart + i - 1;     % the number of this image
         fName                   = info(imNo).Filename;  % full path to input image file
         im_raw                  = elf_io_imread(fName); % load the image (uint16)
 
         % Calibrate and calculate intensity confidence
-        [im_cal, conf, rawWhiteLevels(:, i)] = elf_calibrate_abssens(im_raw, info(imNo), infoSum.blackLevels(imNo, :)); 
+        [im_cal, conf, rawWhiteLevels(:, i)] = cal.applyAbsolute(im_raw, info(imNo));
         
         % Umwarp image        
         im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
-        %         im_proj_cal(:, :, :, i) = elf_calibrate_spectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
+        %         im_proj_cal(:, :, :, i) = cal.applySpectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
 
         conf_proj(:, :, :, i)   = elf_project_apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
     end
     
-    % Sort images by EV
-    EV               = arrayfun(@(x) x.DigitalCamera.ExposureBiasValue, info(setStart:setEnd));
+    % Sort images by EV = exp * iso / apt^2
+    EV               = arrayfun(@(x) x.DigitalCamera.ExposureTime * x.DigitalCamera.ISOSpeedRatings / x.DigitalCamera.FNumber^2, info(setStart:setEnd));
     [~, imOrder]     = sort(EV);         % sorted EV (ascending), for HDR calculation
     im_proj          = im_proj(:, :, :, imOrder);
 %     im_proj_cal      = im_proj_cal(:, :, :, imOrder);
@@ -87,8 +88,8 @@ for iSet = 1:size(sets, 1)
     
     % Pass a figure number and an outputfilename here only if you want diagnostic pdfs.
     % However, MATLAB can't currently deal with saving these large figures, so no pdf will be created either way.
-    im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, rawWhiteLevels); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod
-    im_HDR_cal  = elf_calibrate_spectral(im_HDR, info(setStart), para.ana.colourcalibtype); % apply spectral calibration
+    im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, rawWhiteLevels); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod    
+    im_HDR_cal  = cal.applyColour(im_HDR, info(setStart)); % apply spectral calibration
     I           = elf_io_correctdng(im_HDR_cal, info(setStart), 'bright');
 
     % Save HDR file as MAT and TIF.
@@ -128,19 +129,18 @@ for iSet = 1:size(sets, 1)
     
     
                     if iSet == 1
-                        elf_support_logmsg('      Starting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
-                        elf_support_logmsg('      Scene: 1..');
+                        Logger.log(LogLevel.INFO, '\tStarting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
+                        Logger.log(LogLevel.INFO, '\tScene: 1..');
                     elseif mod(iSet-1, 20)==0
-                        elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b\n');
-                        elf_support_logmsg('             %d..', iSet);
+                        Logger.log(LogLevel.INFO, '\t%d..', iSet);
                     else
-                        elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\b%d..', iSet);
+                        Logger.log(LogLevel.INFO, '\t%d..', iSet);
                     end
 end
 
-                    elf_support_logmsg('\b\b\b\b\b\b\b\b\b\b\b\b\bdone.\n');    
-                    elf_support_logmsg('      Summary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
-                    elf_support_logmsg('      Summary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
+                    Logger.log(LogLevel.INFO, '\t\tdone.\n');    
+                    Logger.log(LogLevel.INFO, '\tSummary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
+                    Logger.log(LogLevel.INFO, '\tSummary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
 
 
 
