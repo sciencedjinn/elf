@@ -1,4 +1,4 @@
-function [im_cal, scalefac] = elf_hdr_scaleStack(im_cal, conf, confsat, compexp)
+function [im_cal, scalefac] = elf_hdr_scaleStack(im_cal, conf, rawWhiteLevels, compexp)
 % ELF_HDR_SCALESTACK scales calibrated images to each other using the mean factorial difference between non-saturated, non-NaN pixels. 
 % This method will work poorly if there is not a lot of overlap in non-saturated pixels between different exposures.
 %
@@ -7,7 +7,7 @@ function [im_cal, scalefac] = elf_hdr_scaleStack(im_cal, conf, confsat, compexp)
 % Inputs:
 %   im_cal   - N x M x C x I double, calibrated image stack
 %   conf     - N x M x C x I double, raw (dark-corrected) image stack, used for confidence/saturation calculation
-%   confsat  - C x I double, the saturation values for each channel/image
+%   rawWhiteLevels  - C x I double, the saturation values for each channel/image
 %   compexp  - 1 x 1 double, index of the exposure that should be used as an initial comparison (default: middle of the stack)
 %              1 x 1 struct, structure including compexp.comp and compexp.mult (see polar_main5_stitch for an example)
 %
@@ -19,7 +19,7 @@ if nargin < 4 || isempty(compexp), compexp = ceil(size(im_cal, 4)/2); end % use 
 
 %% First, scale all images to one comparison image
 scalefac     = zeros(size(im_cal, 4), 1); % pre-allocate
-im_cal_nosat = sub_removeSaturation(im_cal, conf, confsat); % first, remove saturation from all images. 
+im_cal_nosat = sub_removeSaturation(im_cal, conf, rawWhiteLevels); % first, remove saturation from all images. 
 % It is important not to write this back into im_cal, otherwise NaNs will spread during filtering
 
 if ~isstruct(compexp)
@@ -63,8 +63,8 @@ scalefac    = scalefac / meanscalefac; % Multiply images with this for best scal
 end % main
 
 %% subfunctions
-function thisim = sub_removeSaturation(thisim, thisconf, thisconfsat)
-    ulfull                  = repmat(reshape(thisconfsat, [1 1 size(thisim, 3) size(thisim, 4)]), size(thisim, 1), size(thisim, 2), 1, 1);
+function thisim = sub_removeSaturation(thisim, thisconf, rawWhiteLevels)
+    ulfull                  = repmat(reshape(rawWhiteLevels, [1 1 size(thisim, 3) size(thisim, 4)]), size(thisim, 1), size(thisim, 2), 1, 1);
     sel                     = thisconf < ulfull;                         % NxMxCxI boolean marking non-saturated values
 %     sel                     = repmat(all(sel, 3), [1 1 size(sel, 3) size(sel, 4)]);   % NxMxCxI boolean marking values where NONE of the channels is saturated
     thisim(~sel)             = NaN;                                      % set saturated pixels to NaN

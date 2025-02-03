@@ -15,6 +15,11 @@ function elf(varargin)
 useoldfolder = true;
 verbose = false;
 
+vMajor = 1;
+vMinor = 1;
+vPatch = 2;
+fprintf('Starting ELF %d.%d.%d\n', vMajor, vMinor, vPatch);
+
 %% parameters
 for i = 1:length(varargin)
     par = varargin{i};

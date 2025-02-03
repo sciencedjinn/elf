@@ -1,14 +1,13 @@
-function im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confmult, confsat)
+function im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, rawWhiteLevels)
 % ELF_HDR_CALCHDR calculates an HDR image from a stack of calibrated images.
 %
-%   im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confmult, confsat)
+%   im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confsat)
 %
 % Inputs:
 %   im_cal    - N x M x C x I double, calibrated image stack
 %   conf      - N x M x C x I double, raw (dark-corrected) image stack, used for confidence/saturation calculation
 %   hdrmethod - 'overwrite'/'overwrite2'/'validranges'/'allvalid'/'allvalid2'(current default)/'noise', see below for details of methods
-%   confmult  - the multiplier that was used to convert raw image pixels in conf to flux values in im_cal, obtained from elf_calib_abssens
-%   confsat   - C x I double, the saturation values for each channel/image, obtained from elf_calib_abssens
+%   rawWhiteLevels   - C x I double, the saturation values for each channel/image, obtained from elf_calib_abssens
 %
 % Outputs:
 %   im_HDR   - N x M x C double, calibrated HDR image
@@ -25,7 +24,7 @@ switch hdrmethod
         im_HDR = cell(size(im_cal, 3), 1);
 
         for ch = 1:size(im_cal, 3)
-            ul                  = confsat(ch, :);
+            ul                  = rawWhiteLevels(ch, :);
             ul(1)               = Inf;
             im_HDR{ch}          = nan(size(im_cal, 1), size(im_cal, 2)); % pre-allocate
 
@@ -41,7 +40,7 @@ switch hdrmethod
     case 'overwrite2'
         %% same, but more vectorised, so maybe slightly faster
         nch = size(im_cal, 3);
-        ul  = confsat;
+        ul  = rawWhiteLevels;
         ul(:, 1) = Inf;
 
         im_HDR          = nan(size(im_cal, 1), size(im_cal, 2), nch); % pre-allocate
@@ -52,27 +51,6 @@ switch hdrmethod
             thisconf                = conf(:, :, :, ii);
             im_HDR(thisconf<ulfull) = thisim(thisconf<ulfull);
         end
-        
-    case 'validranges'
-        %% Same way as histograms (this image shows what would be included in the histogram)
-        % Calculates a valid range of raw counts for each exposure. This method leaves some pixels empty
-        im_HDR = cell(size(im_cal, 3), 1);
-
-        for ch = 1:size(im_cal, 3)
-            ul                  = confsat(ch, :);
-            ul(1)               = Inf;
-            ll(1:length(ul)-1)  = ul(2:end) ./ confmult(2:end) .* confmult(1:end-1);
-            ll(length(ul))      = -Inf;
-            im_HDR{ch}          = nan(size(im_cal, 1), size(im_cal, 2)); % pre-allocate
-
-            for ii = 1:size(im_cal, 4)  % for each image, starting at the lowest EV image
-                thisimch      = im_cal(:, :, ch, ii); % extract THIS row for THIS channel for THIS image
-                thisconf      = conf(:, :, ch, ii);
-                im_HDR{ch}(thisconf>=ll(ii) & thisconf<ul(ii)) = thisimch(thisconf>=ll(ii) & thisconf<ul(ii));
-            end
-        end
-
-        im_HDR = cat(3, im_HDR{:});
 
     case 'allvalid'
         %% always use the brightest pixel where NONE of the channels is saturated. 
@@ -82,7 +60,7 @@ switch hdrmethod
         for i = 1:size(im_cal, 1)
             for j = 1:size(im_cal, 2)
                 % find the highest exposure that has no saturated pixels
-                bestind = find(~any(squeeze(conf(i, j, :, :))>=confsat), 1, 'last');
+                bestind = find(~any(squeeze(conf(i, j, :, :))>=rawWhiteLevels), 1, 'last');
                 if ~isempty(bestind)
                     im_HDR(i, j, :) = im_cal(i, j, :, bestind);
                 else
@@ -95,7 +73,7 @@ switch hdrmethod
     case 'allvalid2' % (current defaultin elf_para)
         %% same, but  vectorised, so maybe faster
         nch = size(im_cal, 3);
-        ul  = confsat;
+        ul  = rawWhiteLevels;
         ul(:, 1) = Inf;
         
         im_HDR          = nan(size(im_cal, 1), size(im_cal, 2), nch); % pre-allocate
@@ -114,9 +92,9 @@ switch hdrmethod
         % Weights depend on the inverse of the modelled noise (currently: simply the square root of the raw count).
         % Saturated pixels had their confidence set to NaN in elf_calibrate_abssens.
         fullsat = zeros(size(conf));
-        for ch = 1:size(confsat, 1)
-            for im = 1:size(confsat, 2)
-                fullsat(:, :, ch, im) = confsat(ch, im);
+        for ch = 1:size(rawWhiteLevels, 1)
+            for im = 1:size(rawWhiteLevels, 2)
+                fullsat(:, :, ch, im) = rawWhiteLevels(ch, im);
             end
         end
         conf(conf>=fullsat) = 0;
