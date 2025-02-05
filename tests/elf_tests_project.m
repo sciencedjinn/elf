@@ -44,25 +44,25 @@ toc3 = toc;
 
 % 4
 tic
-[projection_ind, infosum1]    = elf_project_image(infosum, azi, ele, 'equisolid', 0);
+[projection_ind, infosum1]    = elf_project_image(infosum, azi, ele, 'equisolid', 'equirectangular', 0);
 im_proj1                      = elf_project_apply(im_ori, projection_ind, imsize_rect);
 toc4 = toc;
 
 % 5
 tic
-[projection_ind, infosum2]    = elf_project_image(infosum, azi, ele, 'equisolid', 45);
+[projection_ind, infosum2]    = elf_project_image(infosum, azi, ele, 'equisolid', 'equirectangular', 45);
 im_proj2                      = elf_project_apply(im_ori, projection_ind, imsize_rect);
 toc5 = toc;
 
 % 6
 tic
-[projection_ind, infosum3]    = elf_project_image(infosum, azi, ele, 'equisolid', -45);
+[projection_ind, infosum3]    = elf_project_image(infosum, azi, ele, 'equisolid', 'equirectangular', -45);
 im_proj3                      = elf_project_apply(im_ori, projection_ind, imsize_rect);
 toc6 = toc;
 
 % 7
 tic
-[projection_ind, infosum4]    = elf_project_image(infosum, azi2, ele2, 'equisolid', 0);
+[projection_ind, infosum4]    = elf_project_image(infosum, azi2, ele2, 'equisolid', 'equirectangular', 0);
 im_proj4                      = elf_project_apply(im_ori, projection_ind, imsize_rect2);
 toc7 = toc;
 

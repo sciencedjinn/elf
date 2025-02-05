@@ -33,14 +33,15 @@ infoSum.linims  = strcmp(imgFormat, "*.dng");                         % if linea
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
                     Logger.log(LogLevel.INFO, '      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
 
-%% Set up projection constants
-% Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
-% Also creates I_info.ori_grid_x1, I_info.ori_grid_y1 (and 2) which can be used to plot a 10 degree resolution grid onto the original image
-[projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
 
 %% Calculate black levels for all images (from calibration or dark images)
 [info, ~, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
 cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourcalibtype);
+
+%% Set up projection constants
+% Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
+% Also creates I_info.ori_grid_x1, I_info.ori_grid_y1 (and 2) which can be used to plot a 10 degree resolution grid onto the original image
+[projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, para.ana.targetProjection, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
 elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
 
 %% Step 1: Unwarp images and calculate HDR scenes

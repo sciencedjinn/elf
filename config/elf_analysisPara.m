@@ -4,7 +4,8 @@ envPath = fullfile(fileparts(mfilename("fullpath")), '..', 'config');
 d       = DotEnv(envPath, '');
 
 anaParameters = ...
-    {'RESOLUTION_BOOSTER',   'double'};
+    {'RESOLUTION_BOOSTER',   'double';
+     'TARGET_PROJECTION', 'string';};
 
 anaP = d.extractValues('ANALYSIS', anaParameters);
 anaP.version = str2double(d.Env.VERSION);

@@ -75,6 +75,7 @@ para.ele2                   = rot90(para.ele,2);
 para.projtype               = 'equisolid';        % if this is 'noproj', no projection will be calculated (original images should be 1801x1801)
 
 %% analysis constants
+%% TODO: Move to .env
 para.ana.scales_deg         = [1 10];   % half-width (FWHM) of receptors in degrees (sigma of Gaussian)
 para.ana.filterazimin       = -90;
 para.ana.filterazimax       = 90;

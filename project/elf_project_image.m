@@ -1,10 +1,12 @@
-function [projection_ind, I_info] = elf_project_image(I_info, azi, ele, method, rotation)
+function [projection_ind, I_info] = elf_project_image(I_info, azi, ele, sourceProj, targetProj, rotation)
 % ELF_PROJECT_IMAGE creates a projection index vector to transform a fisheye image into a equirectangular (azimuth/elevation) grid
 %
 % Inputs:
 % I_info     - Image information structure (only uses Height, Width, SamplesPerPixel, FocalLength and Model)
 % azi, ele   - output angle ranges defining the desired grid of the projected images (default -90:0.1:90, and 90:-0.1:-90)
-% method     - The desired fisheye projection. Currently supports 'equisolid'(e.g. D810)/'orthographic'/'equidistant' 
+% sourceProj - The original fisheye projection. Currently supports 'equisolid'(e.g. D810)/'orthographic'/'equidistant'
+% targetProj - The desired output projection. This is "equirectangular" for normal ELF analysis, but might be different for modules, e.g. "equisolid"
+%                to retain the fisheye projection
 % rotated    - 
 %
 % Outputs:
@@ -13,15 +15,16 @@ function [projection_ind, I_info] = elf_project_image(I_info, azi, ele, method, 
 
 % Uses: elf_project_rect2fisheye, which uses elf_project_sub2ind
 
-if nargin<5 || isempty(rotation), rotation = 0; end
-if nargin<4 || isempty(method), method = 'default'; end
+if nargin<6 || isempty(rotation), rotation = 0; end
+if nargin<5 || isempty(targetProj), targetProj = 'default'; end
+if nargin<4 || isempty(sourceProj), sourceProj = 'default'; end
 if nargin<3 || isempty(ele), ele = 90:-0.1:-90; end
 if nargin<2 || isempty(azi), azi = -90:0.1:90; end
 
                     Logger.log(LogLevel.INFO, '\tCalculating projection constants...\n');
 
 %% Provide 'noproj' mode for internal testing. In this mode, images are assumed to already be projected into equirectangular projection
-if strcmp(method, 'noproj')
+if strcmp(sourceProj, 'noproj')
     % this mode is available for internal testing
     I_info.ori_grid_x   = [];    
     I_info.ori_grid_y   = [];
@@ -39,7 +42,7 @@ gridres2 = 1;   % resolution of the displayed grid along lines
 
 %% Calculate main projections
 [azi_grid, ele_grid] = meshgrid(azi, ele);                    % grid of desired angles
-[w_im, h_im]         = elf_project_rect2fisheye(azi_grid, ele_grid, I_info, method, rotation);
+[w_im, h_im]         = elf_project_rect2fisheye(azi_grid, ele_grid, I_info, sourceProj, rotation);
 % [w_im, y_im]         = elf_project_rect2fisheye_simple(azi_grid, ele_grid, I_info.Width, I_info.Height, I_info.FocalLength, rotation); % for testing and comparison
 projection_ind       = elf_project_sub2ind([I_info.Height I_info.Width I_info.SamplesPerPixel], w_im, h_im);
 
@@ -60,8 +63,7 @@ gele2(r+1, :)        = NaN;
 gazi                 = [gazi1(:); gazi2(:)];
 gele                 = [gele1(:); gele2(:)];
 
-[I_info.ori_grid_x, I_info.ori_grid_y] = elf_project_rect2fisheye(gazi, gele, I_info, method, rotation);
-%[I_info.ori_grid_x2, I_info.ori_grid_y2] = elf_project_rect2fisheye(gazi2, gele2, I_info, method);
+[I_info.ori_grid_x, I_info.ori_grid_y] = elf_project_rect2fisheye(gazi, gele, I_info, sourceProj, rotation);
 
 % b) grid for projected image (assumes that grid points are included in image grid)
 [~, I_info.proj_grid_x] = ismember(gazi, azi);
