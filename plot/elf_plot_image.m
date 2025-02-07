@@ -5,7 +5,7 @@ function hi = elf_plot_image(im, I_info, h, proj, correct, plotPara)
 % im        - image to plot (can be of any image format)
 % I_info    - info structure for the image (as created by elf_loadimage). If 
 %             proj is anything but 'undefined', this has to include axes
-%             information (usually added by elf_project_image).
+%             information (usually added by proj.getProjectionInfo).
 % h         - graphics handle. This can be a uipanel or an axes handle.
 %             If an axes handle is provided, only the image will be plotted.
 %             If a uipanel handle is provided, axes will be created in the

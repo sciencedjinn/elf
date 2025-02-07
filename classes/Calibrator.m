@@ -11,6 +11,7 @@ classdef Calibrator
         Height
         Width
         SpectralMethod
+        ProjectionInfo
     end
 
     properties(Access=protected)
@@ -45,6 +46,7 @@ classdef Calibrator
             obj.SpectralMethod = spectralMethod;
             obj = obj.loadAbsoluteCalib(); % load the absolute and vignetting correction
             obj = obj.loadSpectralCalibration(); % load the spectral correction
+            obj = obj.loadProjectionInfo();
         end
     end
 
@@ -374,6 +376,44 @@ classdef Calibrator
                     obj.SpectralMatrix  = obj.getCol(camstring);                    
                 case 'wb'
                     % Uses the white balance multipliers from each files exif information
+            end
+        end
+    end
+
+    methods(Hidden, Access=protected)
+        function obj = loadProjectionInfo(obj)
+            % Calibrator.loadProjectionInfo loads the spatial calibration information for this Calibrator object
+            % All information is currently stored in this function, but could conceivably be stored in a file instead
+            % Note that all information is loaded by camera type, even though it depends on the lens, of course! This is a shorthand to refer to our
+            % calibrated camera/lens combinations, because lens information is rarely stored in EXIF information 
+
+            obj.ProjectionInfo.Type = "equisolid";
+            obj.ProjectionInfo.WCorr = 0; % correction for centre in width (obtained from calibration for imperfect lens)
+            obj.ProjectionInfo.HCorr = 0; % correction for centre in height (obtained from calibration for imperfect lens)
+            obj.ProjectionInfo.RCorr = 1; % correction multiplier for R (obtained from calibration for imperfect lens)
+            
+            switch lower(obj.CameraString)
+                case 'nikon d800e'
+                    obj.ProjectionInfo.RCorr = 1.02;
+                    
+                case 'nikon d810'
+
+                case 'nikon d850'
+
+                case 'nikon d3x'
+                    obj.ProjectionInfo.WCorr = -7;
+                    obj.ProjectionInfo.HCorr = 7;
+                    obj.ProjectionInfo.RCorr = 1.02;
+                case 'nikon z 6'
+
+                case 'canon eos-1ds mark ii'
+                    obj.ProjectionInfo.WCorr = -13.5;
+                    obj.ProjectionInfo.HCorr = -13.5;
+                    obj.ProjectionInfo.RCorr = 0.96;
+                case 'nikon d5300'
+                    obj.ProjectionInfo.RCorr = 1.35;
+                otherwise
+                    warning('No spatial calibration available for this camera (%s) and lens. Assuming perfect equisolid projection on full size chip', I_info.Model{1});                    
             end
         end
     end

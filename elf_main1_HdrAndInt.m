@@ -4,7 +4,7 @@ function elf_main1_HdrAndInt(dataSet, imgFormat, verbose, rotation)
 % Intensity descriptors are calculated for each exposure and then combined for scenes based on individual pixel reliability.
 %
 % Uses: elf_paths, elf_para, elf_info_collect, 
-%       elf_info_summarise, elf_hdr_brackets, elf_project_image, 
+%       elf_info_summarise, elf_hdr_brackets, 
 %       elf_io_readwrite, elf_hdr_calcHDR, elf_io_correctdng, elf_io_imread
 %       elf_analysis_int, elf_support_formatA4l
 %
@@ -37,11 +37,13 @@ sets            = elf_hdr_brackets(info);                             % determin
 %% Calculate black levels for all images (from calibration or dark images)
 [info, ~, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
 cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourcalibtype);
+proj = Projector(infoSum, cal.ProjectionInfo);
 
 %% Set up projection constants
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
 % Also creates I_info.ori_grid_x1, I_info.ori_grid_y1 (and 2) which can be used to plot a 10 degree resolution grid onto the original image
-[projection_ind, infoSum] = elf_project_image(infoSum, para.azi, para.ele2, para.projtype, para.ana.targetProjection, rotation); % default: 'equisolid'; also possible: 'orthographic' / 'equidistant' / 'noproj'
+projection_ind = proj.calculateProjection(para.azi, para.ele2, rotation);
+infoSum        = proj.getProjectionInfo(infoSum, para.azi, para.ele2, rotation);
 elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
 
 %% Step 1: Unwarp images and calculate HDR scenes
@@ -70,10 +72,10 @@ for iSet = 1:size(sets, 1)
         [im_cal, conf, rawWhiteLevels(:, i)] = cal.applyAbsolute(im_raw, info(imNo));
         
         % Umwarp image        
-        im_proj(:, :, :, i)     = elf_project_apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
+        im_proj(:, :, :, i)     = Projector.apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
         %         im_proj_cal(:, :, :, i) = cal.applySpectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
 
-        conf_proj(:, :, :, i)   = elf_project_apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
+        conf_proj(:, :, :, i)   = Projector.apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
     end
     
     % Sort images by EV = exp * iso / apt^2
@@ -90,7 +92,7 @@ for iSet = 1:size(sets, 1)
     % Pass a figure number and an outputfilename here only if you want diagnostic pdfs.
     % However, MATLAB can't currently deal with saving these large figures, so no pdf will be created either way.
     im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, rawWhiteLevels); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod    
-    im_HDR_cal  = cal.applyColour(im_HDR, info(setStart)); % apply spectral calibration
+    im_HDR_cal  = cal.applySpectral(im_HDR, info(setStart)); % apply spectral calibration
     I           = elf_io_correctdng(im_HDR_cal, info(setStart), 'bright');
 
     % Save HDR file as MAT and TIF.
