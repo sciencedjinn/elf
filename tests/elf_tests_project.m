@@ -24,9 +24,9 @@ imsize_fish = [4000 5000 3];
 %% load test image
 % 1
 tic
-I_info    = elf_info_load(test_filename);
-infosum   = elf_info_summarise(I_info);
-imsize_fish2 = [infosum.Height infosum.Width infosum.SamplesPerPixel];
+I_info = elf_info_load(test_filename);
+infoSum   = elf_info_summarise(I_info);
+imsize_fish2 = [infoSum.Height infoSum.Width infoSum.SamplesPerPixel];
 im_raw    = double(elf_io_imread(test_filename));
 I_info = elf_calibrate_blackLevels(I_info, "*.dng");
 cal = Calibrator(I_info.Model, [I_info.Width I_info.Height], 'wb');
@@ -35,6 +35,7 @@ im_ori = cal.applyAbsolute(im_raw, I_info);
 im_ori  = cal.applySpectral(im_ori, I_info); % apply spectral calibration
 toc1 = toc;
 
+%%
 % 2
 tic
 im_black = proj.blackout(im_ori);
@@ -69,38 +70,39 @@ toc6 = toc;
 % 7
 tic
 projection_ind                = proj.calculateProjection(azi2, ele2, 0);
-infoSum4                       = proj.getProjectionInfo(infoSum, azi2, ele2, 0);
-im_proj4                      = Projector.apply(im_ori, projection_ind, imsize_rect2);
+infoSum4                      = proj.getProjectionInfo(infoSum, azi2, ele2, 0);
+im_proj4                      = proj.apply(im_ori, projection_ind, imsize_rect2);
 toc7 = toc;
 
 % 8
 tic
-im_reproj1                    = Projector.fastBackProjection(im_proj2, azi, ele, -45);
+im_reproj1                    = proj.fastBackProjection(im_proj2, azi, ele, -45);
 toc8 = toc;
 
 % 9
 tic
-im_reproj2                    = Projector.fastBackProjection(im_proj4, azi2, ele2, 0);
+im_reproj2                    = proj.fastBackProjection(im_proj4, azi2, ele2, 0);
 im_reproj2(isnan(im_reproj2)) = 0;
 toc9 = toc;
 
 % 10
 tic
-im_reproj3                    = Projector.fastBackProjection(im_proj4, azi2, ele2, 45);
+im_reproj3                    = proj.fastBackProjection(im_proj4, azi2, ele2, 45);
 im_reproj3(isnan(im_reproj3)) = 0;
 toc10 = toc;
 
+%%
 % 11
 tic
 projection_ind                = proj.calculateBackProjection(azi, ele, -45);
-im_temp                       = Projector.apply(im_proj2, projection_ind, imsize_fish2);
+im_temp                       = proj.apply(im_proj2, projection_ind, imsize_fish2);
 im_reproj4                    = proj.blackout(im_temp);
 toc11 = toc;
  
 % 12
 tic
 projection_ind                = proj.calculateBackProjection(azi2, ele2, 45);
-im_temp                       = Projector.apply(im_proj4, projection_ind, imsize_fish2);
+im_temp                       = proj.apply(im_proj4, projection_ind, imsize_fish2);
 im_reproj5                    = proj.blackout(im_temp);
 im_reproj5(isnan(im_reproj5)) = 0;
 toc12 = toc;
@@ -108,21 +110,21 @@ toc12 = toc;
 % 13
 tic
 projection_ind                = proj.calculateBackProjection(azi, ele, 0);
-im_temp                       = Projector.apply(im_proj2, projection_ind, imsize_fish2);
+im_temp                       = proj.apply(im_proj2, projection_ind, imsize_fish2);
 im_reproj6                    = proj.blackout(im_temp);
 toc13 = toc;
 
 % 14
 tic
 projection_ind                = proj.calculateBackProjection(azi, ele, -45);
-im_temp                       = Projector.apply(im_proj2, projection_ind, imsize_fish2);
+im_temp                       = proj.apply(im_proj2, projection_ind, imsize_fish2);
 im_reproj7                    = proj.blackout(im_temp);
 toc14 = toc;
 
 % 15
 tic
 projection_ind                = proj.calculateBackProjection(azi2, ele2, 45);
-im_temp                       = Projector.apply(im_proj4, projection_ind, imsize_fish2);
+im_temp                       = proj.apply(im_proj4, projection_ind, imsize_fish2);
 im_reproj8                    = proj.blackout(im_temp);
 im_reproj8(isnan(im_reproj8)) = 0;
 toc15 = toc;

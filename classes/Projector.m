@@ -38,11 +38,12 @@ classdef Projector
             % WCorr, 
             % HCorr
 
-            Logger.log(LogLevel.INFO, 'Creating a Calibrator object for %s camera\n', camString)
+            Logger.log(LogLevel.INFO, 'Creating a Projector object for %s camera\n', I_info.Model{1})
 
             obj.Height = I_info.Height;
             obj.Width = I_info.Width;
             obj.SamplesPerChannel = I_info.SamplesPerPixel;
+            obj.ProjectionType = projInfo.Type;
 
             shortSide = min([I_info.Height I_info.Width]);
             chipShortSide = min([projInfo.ChipHeight projInfo.ChipWidth]);
@@ -132,8 +133,8 @@ classdef Projector
             % [w_grid, h_grid] = meshgrid(1:I_info.Width, 1:I_info.Height);
             % [X, Y, Z] = obj.pix2cart(w_grid, h_grid)
 
-            if nargin<5 || isempty(roundIt), roundIt=true; end
-            if nargin<4 || isempty(rotation), rotation=0; end
+            if nargin<6 || isempty(roundIt), roundIt=true; end
+            if nargin<5 || isempty(rotation), rotation=0; end
 
             theta_deg = acosd(X);               % theta is the angle between a viewing direction and the X-axis (X is equal to the scalar dot product of that direction and the X-axis)
             gamma     = atan2d(-Z, Y)-rotation; % gamma is the angle between the Y/Z projection of a viewing direction and the Y axis; the -Z makes sure that high elevation values are mapped onto a low image index
@@ -394,16 +395,17 @@ classdef Projector
             ind2    = repmat(round(w_im(:)), imsize(3), 1); % repeat three times to call for each channel
             ind3    = reshape(repmat(1:imsize(3), length(w_im(:)), 1), [], 1);
             
-            ind1(ind1>imsize(1)) = NaN;
-            ind2(ind2>imsize(2)) = NaN;
-            ind1(ind1<1) = NaN;
-            ind2(ind2<1) = NaN;
+            sel = isnan(ind1) | isnan(ind2);
+            ind1(sel) = 1;
+            ind2(sel) = 1;
             
             ind     = sub2ind(imsize, ind1, ind2, ind3);    % transform into linear indexes
+
+            ind(sel) = NaN;
         end
 
-        function ind = sub2ind_4D(imsize, w_im, h_im, n_im)
-            % PROJECTOR.SUB2IND is the 4D version of PROJECTOR.SUB2IND and can be used on a whole image stack
+        function ind = sub2ind4(imsize, w_im, h_im, n_im)
+            % PROJECTOR.SUB2IND4 is the 4D version of PROJECTOR.SUB2IND and can be used on a whole image stack
             % n_im              - 4th image coordinate obtained from stitch_5dirs
             
             %% calculate linear index vector for projection
