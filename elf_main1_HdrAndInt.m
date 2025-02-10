@@ -63,7 +63,7 @@ for iSet = 1:size(sets, 1)
         % Load image
         imNo                    = setStart + i - 1;     % the number of this image
         fName                   = info(imNo).Filename;  % full path to input image file
-        im_raw                  = elf_io_imread(fName); % load the image (uint16)
+        im_raw                  = double(elf_io_imread(fName)); % load the image (uint16) and transform to double
 
         % Calibrate and calculate intensity confidence
         [im_cal, conf, rawWhiteLevels(:, i)] = cal.applyAbsolute(im_raw, info(imNo));
@@ -89,7 +89,7 @@ for iSet = 1:size(sets, 1)
     % Pass a figure number and an outputfilename here only if you want diagnostic pdfs.
     % However, MATLAB can't currently deal with saving these large figures, so no pdf will be created either way.
     im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, rawWhiteLevels); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod    
-    im_HDR_cal  = cal.applyColour(im_HDR, info(setStart)); % apply spectral calibration
+    im_HDR_cal  = cal.applySpectral(im_HDR, info(setStart)); % apply spectral calibration
     I           = elf_io_correctdng(im_HDR_cal, info(setStart), 'bright');
 
     % Save HDR file as MAT and TIF.
