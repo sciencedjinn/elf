@@ -27,6 +27,7 @@ s = warning('off', 'MATLAB:tifflib:TIFFReadDirectory:libraryWarning');
 warning('off', 'MATLAB:imagesci:tiffmexutils:libtiffWarning');
 warning('off', 'imageio:tiffmexutils:libtiffWarning');
 warning('off', 'imageio:tifftagsread:expectedTagDataFormat');
+warning('off', 'imageio:tiffutils:libtiffWarning');
 % 
 
 %% Catch important warnings by setting them to errors temporarily (https://undocumentedmatlab.com/blog/trapping-warnings-efficiently)
