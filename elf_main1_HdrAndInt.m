@@ -72,7 +72,7 @@ for iSet = 1:size(sets, 1)
         % Load image
         imNo                    = setStart + i - 1;     % the number of this image
         fName                   = info(imNo).Filename;  % full path to input image file
-        im_raw                  = double(elf_io_imread(fName)); % load the image (uint16)
+        im_raw                  = double(elf_io_imread(fName)); % load the image (uint16) and transform to double
 
         % Calibrate and calculate intensity confidence
         [im_cal, conf, rawWhiteLevels(:, i)] = cal.applyAbsolute(im_raw, info(imNo));
