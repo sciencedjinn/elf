@@ -33,6 +33,12 @@ infoSum.linims  = strcmp(imgFormat, "*.dng");                         % if linea
 sets            = elf_hdr_brackets(info);                             % determine which images are part of the same scene
                     Logger.log(LogLevel.INFO, '      Processing %d scenes in environment %s.\n', size(sets, 1), dataSet);
 
+para.stages.calibrate = true;
+para.stages.projectToEquirectangular = false;
+para.stages.calculateHdr = true;
+para.stages.stitch = false;
+para.stages.filter = true;
+para.stages.calculateInt = true;
 
 %% Calculate black levels for all images (from calibration or dark images)
 [info, ~, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
@@ -66,7 +72,7 @@ for iSet = 1:size(sets, 1)
         % Load image
         imNo                    = setStart + i - 1;     % the number of this image
         fName                   = info(imNo).Filename;  % full path to input image file
-        im_raw                  = elf_io_imread(fName); % load the image (uint16)
+        im_raw                  = double(elf_io_imread(fName)); % load the image (uint16)
 
         % Calibrate and calculate intensity confidence
         [im_cal, conf, rawWhiteLevels(:, i)] = cal.applyAbsolute(im_raw, info(imNo));
@@ -142,7 +148,7 @@ for iSet = 1:size(sets, 1)
 end
 
                     Logger.log(LogLevel.INFO, '\t\tdone.\n');    
-                    Logger.log(LogLevel.INFO, '\tSummary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet); % write confirmation to log
+                    Logger.log(LogLevel.INFO, '\tSummary: All HDR scenes for environment %s calculated and saved to mat and tif.\n\n', dataSet);
                     Logger.log(LogLevel.INFO, '\tSummary: All intensity descriptors for environment %s calculated and saved to mat.\n\n', para.paths.dataset);
 
 
