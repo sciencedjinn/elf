@@ -35,7 +35,7 @@ classdef Logger < handle
             callingName = d(2).name;                    % d(2).name can give the method/function name 
             
             if level>=Logger.S.Level
-                if strncmp(str, "\b", 1)
+                if strncmp(str, "\b", 2)
                     % if the string start with a backspace, don't print the header
                     s = str;
                 else
