@@ -1,9 +1,9 @@
 classdef Projector
-    % PROJECTOR represents a circular fisheye/hemispherical image and contains the image and projection data
+    % PROJECTOR represents a circular fisheye/hemispherical image and provides methods to project or plot it
     %
     % Call sequence: elf -> elf_main1_HdrAndInt -> FisheyeImage
     %
-    % See also: Calibrator, Projector
+    % See also: Calibrator
 
     properties(SetAccess=immutable)
         Data
@@ -27,16 +27,12 @@ classdef Projector
     %%%%%%%%%%%%%%%%%
     methods
         function obj = Projector(I_info, projInfo)
-            %CALIBRATOR Construct an instance of this class
+            %PROJECTOR Construct an instance of this class
             %   Detailed explanation goes here
             % Inputs:
-            %   camString   - camera model (can be extracted from info.Model or infoSum.Model)
-            %   wh          - width and height of images (can be extracted from info.Width and info.Height)
-            %   projInfo - needs fields ChipWidth, 
-            % ChipHeight, 
-            % RCorr, >1: Image circle greater than expected from focal length
-            % WCorr, 
-            % HCorr
+            %   I_info   - exif information structure, needed fields: Height, Width, SamplesPerPixel, FocalLength
+            %   projInfo - additional projection information that is not included in EXIF information, or needs to be calibrated
+            %                 (obtained from Calibrator object), needed fields: ChipWidth, ChipHeight, Type, RCorr, WCorr, HCorr
 
             Logger.log(LogLevel.INFO, 'Creating a Projector object for %s camera\n', I_info.Model{1})
 
@@ -182,7 +178,7 @@ classdef Projector
             % azi, ele   - output angle ranges defining the desired grid of the projected images (default -90:0.1:90, and 90:-0.1:-90)
             %
             % Outputs:
-            % I_info          - Image information structure with projection grids added. These can be used in plotting.
+            % I_info     - Image information structure with projection grids added. These can be used in plotting.
 
             % Uses: elf_project_rect2fisheye, which uses Projector.sub2ind
 
@@ -281,7 +277,7 @@ classdef Projector
         end
 
         function im_fisheye = fastBackProjection(obj, im, azi, ele, rotation, method)
-            % FASTBACKPROJECTION takes a equirectangular image and project it back to an equisolid fisheye image.
+            % FASTBACKPROJECTION takes an equirectangular image and project it back to an equisolid fisheye image.
             %
             % Inputs:
             % im             - MxNxC double, the equirectangular image to be transformed
@@ -323,10 +319,18 @@ classdef Projector
             end
         end
 
-        function im = blackout(obj, im, excLimit, zerovalue)
+        function im = blackout(obj, im, excLimit, zeroValue)
             % BLACKOUT takes a fisheye image and sets all image point beyond a certain excentricity (default 90 degrees) to 0 or NaN
-                        
-            if nargin<4 || isempty(zerovalue), zerovalue = 0; end
+            % Inputs:
+            % im        - MxNxC double, the fisheye image to be transformed
+            % excLimit  - default: 90; excentricity limit in degrees; any value with a greater excentricity (angle to the optiocal axis) 
+            %               than this will be set to zeroValue
+            % zeroValue - default: 0; zero value: any value with a greater excentricity than excLimit this will be set to this value
+            %
+            % Outputs:
+            % im        - processed image
+
+            if nargin<4 || isempty(zeroValue), zeroValue = 0; end
             if nargin<3 || isempty(excLimit), excLimit = 90; end
             
             [w, h]      = meshgrid(1:obj.Width, 1:obj.Height);
@@ -337,7 +341,7 @@ classdef Projector
             tempim      = cell(obj.SamplesPerChannel, 1);
             for i = 1:obj.SamplesPerChannel
                 tempim{i} = im(:, :, i); 
-                tempim{i}(sel) = zerovalue;
+                tempim{i}(sel) = zeroValue;
             end
             im = cat(3, tempim{:});
         end
@@ -353,25 +357,26 @@ classdef Projector
             % Use this for quick reprojection of images.
             %
             % Inputs:
-            % im            - image to unwarp
-            % ind           - linear index vector into the first two dimensions of im (obtained from Projector.sub2ind)
+            % im            - image to which to apply the projection
+            % proj_ind      - linear index vector into the first two dimensions of im (obtained from Projector.sub2ind)
             % imsize        - 3x1 double, size of the output image
             %
             % Outputs:
-            % im            - projections index matrix. The projected image can be calculated as im_proj = im(projection_ind)
+            % im            - the projected image
             %
-            % Example:  % TODO: Replace with Projector-based example
+            % Usage example:
+            % proj           = Projector(I_info, projInfo)
+            % [w_im, h_im]   = proj.rect2pix(azi, ele);
             % imsize_fisheye = [I_info.Height I_info.Width I_info.SamplesPerPixel];
-            % [x_im, y_im]   = elf_project_rect2fisheye(az, el, I_info, method);
-            % ind            = Projector.sub2ind(imsize_fisheye, x_im, y_im)
+            % ind            = Projector.sub2ind(imsize_fisheye, w_im, h_im)
             % imsize_rect    = [length(ele) length(azi) I_info.SamplesPerPixel];
             % im             = Projector.apply(im, ind, imsize_rect)
 
-            sel = isnan(proj_ind); 
+            sel           = isnan(proj_ind); 
             proj_ind(sel) = 1; % NaNs in the projection index indicate invalid points. Remove for now, and set to NaN later
-            im_temp = im(proj_ind); % index image
-            im_temp(sel) = NaN; % now set invalid points to NaN
-            im = reshape(im_temp, imsize); % and reshape back into an image
+            im_temp       = im(proj_ind); % index image
+            im_temp(sel)  = NaN; % now set invalid points to NaN
+            im            = reshape(im_temp, imsize); % and reshape back into an image
         end
 
         function ind = sub2ind(imsize, w_im, h_im)
@@ -386,22 +391,23 @@ classdef Projector
             % projection_ind    - projections index matrix. The projected image can be calculated as im_proj = im(projection_ind)
             %
             % Example:
-            % imsize       = [I_info.Height I_info.Width I_info.SamplesPerPixel];
-            % [w_im, h_im] = elf_project_rect2fisheye(az, el, I_info, method);
-            % ind          = Projector.sub2ind(imsize, x_im, y_im)
+            % proj           = Projector(I_info, projInfo)
+            % [w_im, h_im]   = proj.rect2pix(azi, ele);
+            % imsize_fisheye = [I_info.Height I_info.Width I_info.SamplesPerPixel];
+            % ind            = Projector.sub2ind(imsize_fisheye, w_im, h_im)
             
             %% calculate linear index vector for projection
-            ind1    = repmat(round(h_im(:)), imsize(3), 1); % repeat three times to call for each channel
-            ind2    = repmat(round(w_im(:)), imsize(3), 1); % repeat three times to call for each channel
-            ind3    = reshape(repmat(1:imsize(3), length(w_im(:)), 1), [], 1);
+            ind1      = repmat(round(h_im(:)), imsize(3), 1); % repeat three times to call for each channel
+            ind2      = repmat(round(w_im(:)), imsize(3), 1); % repeat three times to call for each channel
+            ind3      = reshape(repmat(1:imsize(3), length(w_im(:)), 1), [], 1);
             
-            sel = isnan(ind1) | isnan(ind2);
+            sel       = isnan(ind1) | isnan(ind2);
             ind1(sel) = 1;
             ind2(sel) = 1;
             
-            ind     = sub2ind(imsize, ind1, ind2, ind3);    % transform into linear indexes
+            ind       = sub2ind(imsize, ind1, ind2, ind3);    % transform into linear indexes
 
-            ind(sel) = NaN;
+            ind(sel)  = NaN;
         end
 
         function ind = sub2ind4(imsize, w_im, h_im, n_im)
