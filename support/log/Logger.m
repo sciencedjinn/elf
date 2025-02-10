@@ -35,23 +35,28 @@ classdef Logger < handle
             callingName = d(2).name;                    % d(2).name can give the method/function name 
             
             if level>=Logger.S.Level
-                s = ['[%s] [ %5s ] %-35s: ' str];
-                
+                if strncmp(str, "\b", 1)
+                    % if the string start with a backspace, don't print the header
+                    s = str;
+                else
+                    s = sprintf('[%s] [ %5s ] %-35s: %s', datestr(now, 'HH:MM:SS.FFF'), char(level), callingName, str);
+                end
+
                 if isnumeric(Logger.S.Dest) && Logger.S.Dest==1
                     % sending to standard out
-                    fprintf(Logger.S.Dest, s, datestr(now, 'HH:MM:SS.FFF'), char(level), callingName, varargin{:});
+                    fprintf(Logger.S.Dest, s, varargin{:});
                 elseif isnumeric(Logger.S.Dest)
                     % sending to file
                     try
-                        fprintf(Logger.S.Dest, s, datestr(now, 'HH:MM:SS.FFF'), char(level), callingName, varargin{:});
+                        fprintf(Logger.S.Dest, s, varargin{:});
                     catch me
                         % writing to file failed, write to standard out and change Dest
                         warning(me.identifier, 'Writing to file failed with error message: %s', me.message);
                         Logger.setDest(1);
-                        fprintf(Logger.S.Dest, s, datestr(now, 'HH:MM:SS.FFF'), char(level), callingName, varargin{:});
+                        fprintf(Logger.S.Dest, s, varargin{:});
                     end
                 elseif isa(Logger.S.Dest, 'matlab.ui.control.TextArea')
-                    s1 = sprintf(s, datestr(now, 'HH:MM:SS.FFF'), char(level), callingName, varargin{:});
+                    s1 = sprintf(s, varargin{:});
 
                     ta = Logger.S.Dest;
                     currentText = ta.Value;

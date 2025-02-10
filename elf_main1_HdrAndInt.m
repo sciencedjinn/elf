@@ -141,9 +141,9 @@ for iSet = 1:size(sets, 1)
                         Logger.log(LogLevel.INFO, '\tStarting scene-by-scene calibration, HDR creation and intensity analysis. Projected time: %.2f minutes.\n', toc/60*size(sets, 1));
                         Logger.log(LogLevel.INFO, '\tScene: 1..');
                     elseif mod(iSet-1, 20)==0
-                        Logger.log(LogLevel.INFO, '\t%d..', iSet);
+                        Logger.log(LogLevel.INFO, '\n\t%d..', iSet);
                     else
-                        Logger.log(LogLevel.INFO, '\t%d..', iSet);
+                        Logger.log(LogLevel.INFO, '\b%d..', iSet);
                     end
 end
 
