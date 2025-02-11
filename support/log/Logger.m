@@ -32,7 +32,11 @@ classdef Logger < handle
 
             d = dbstack;
 %             [~, callingName] = fileparts(d(2).file);    % fileparts(d(2).file) just gives the filename
-            callingName = d(2).name;                    % d(2).name can give the method/function name 
+            if length(d)>1
+                callingName = d(2).name;                    % d(2).name can give the method/function name 
+            else
+                callingName = "command_line";
+            end
             
             if level>=Logger.S.Level
                 if strncmp(str, "\b", 2)

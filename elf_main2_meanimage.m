@@ -28,8 +28,14 @@ allFiles        = elf_io_dir(fullfile(para.paths.datapath, para.paths.scenefolde
 fNames_im       = {allFiles.name};                          % collect image names
 infoSum         = elf_io_readwrite(para, 'loadinfosum');      % loads the old infosum file (which contains projection information, and linims)
 
+para.stages.project = false;
+
 %% Calculate mean image and thumbs
-sumImage    = zeros(length(infoSum.proj_ele), length(infoSum.proj_azi), infoSum.SamplesPerPixel, 'double');  % pre-allocate for sum of all processed images
+if para.stages.project
+    sumImage    = zeros(length(infoSum.proj_ele), length(infoSum.proj_azi), infoSum.SamplesPerPixel, 'double');  % pre-allocate for sum of all processed images
+else
+    sumImage    = zeros(infoSum.Height, infoSum.Width, infoSum.SamplesPerPixel, 'double');  % pre-allocate for sum of all processed images
+end
 thumbs      = zeros(100, 100, infoSum.SamplesPerPixel, length(allFiles), infoSum.class{1});      % pre-allocate for  thumbnails of all processed images
 
 if verbose, fh = figure(22); clf; hp = uipanel('Parent', fh); hi = []; end
