@@ -35,6 +35,66 @@ im_ori = cal.applyAbsolute(im_raw, I_info);
 im_ori  = cal.applySpectral(im_ori, I_info); % apply spectral calibration
 toc1 = toc;
 
+%% Image circle cropping
+im_black = proj.blackout(im_ori);
+
+% 1
+tic
+[projection_ind, newProj]      = proj.crop2imageCircle(90);
+infoSumCC1 = infoSum; infoSumCC1.grids = newProj.getProjectionInfo(0);
+im_projCC1                     = Projector.apply(im_black, projection_ind, newProj.Size);
+tocX1 = toc;
+
+% 1
+tic
+[projection_ind, newProj]      = newProj.crop2ImageCircle(90);
+infoSumCC2 = infoSum; infoSumCC2.grids = newProj.getProjectionInfo(0);
+im_projCC2                     = Projector.apply(im_projCC1, projection_ind, newProj.Size);
+tocX2 = toc;
+
+% 1
+tic
+[projection_ind, newProj]      = proj.crop2ImageCircle(45);
+infoSumCC3 = infoSum; infoSumCC3.grids = newProj.getProjectionInfo(0);
+im_projCC3                     = Projector.apply(im_black, projection_ind, newProj.Size);
+tocX3 = toc;
+
+% 1
+tic
+[projection_ind, newProj]      = newProj.crop2ImageCircle(90);
+infoSumCC4 = infoSum; infoSumCC4.grids = newProj.getProjectionInfo(0);
+im_projCC4                     = Projector.apply(im_projCC3, projection_ind, newProj.Size);
+im_projCC4(im_projCC4<0) = 0;
+tocX4 = toc;
+
+figure(2); clf; drawnow;
+h = axes;
+infoSum1 = infoSum; infoSum1.grids = proj.getProjectionInfo(0);
+elf_plot_image(im_ori, infoSum1, h, 'equisolid', 'bright');
+title(sprintf('original'))
+
+figure(3); clf; drawnow;
+h = axes;
+elf_plot_image(im_projCC1, infoSumCC1, h, 'equisolid', 'bright');
+title(sprintf('Cropped to 90 deg\n%.2f seconds', tocX1))
+
+figure(4); clf; drawnow;
+h = axes;
+elf_plot_image(im_projCC2, infoSumCC2, h, 'equisolid', 'bright');
+title(sprintf('Cropped again to 90 deg\n%.2f seconds', tocX2))
+
+figure(5); clf; drawnow;
+h = axes;
+elf_plot_image(im_projCC3, infoSumCC3, h, 'equisolid', 'bright');
+title(sprintf('Cropped to 45 deg\n%.2f seconds', tocX1))
+
+figure(6); clf; drawnow;
+h = axes;
+elf_plot_image(im_projCC4/max(im_projCC4(:)), infoSumCC4, h, 'equisolid', 'bright');
+title(sprintf('Cropped back to 90 deg\n%.2f seconds', tocX2))
+% NOTE the issue here: colour correction comes out weird with this unusual image
+return
+
 %% Test fisheye reprojection
 % 1
 tic
@@ -64,28 +124,28 @@ infoSumRP4 = infoSum; infoSumRP4.grids = newProj.getProjectionInfo(0);
 im_projRP4                      = Projector.apply(im_ori, projection_ind, [1000, 1000, 3]);
 tocX4 = toc;
 
-figure(2); clf; drawnow;
+figure(5); clf; drawnow;
 h = axes;
 infoSum1 = infoSum; infoSum1.grids = proj.getProjectionInfo(0);
 elf_plot_image(im_ori, infoSum1, h, 'equisolid', 'bright');
 title(sprintf('original'))
 
-figure(3); clf; drawnow;
+figure(6); clf; drawnow;
 h = axes;
 elf_plot_image(im_projRP1, infoSumRP1, h, 'equisolid', 'bright');
 title(sprintf('RP equisolid\n%.2f seconds', tocX1))
 
-figure(4); clf; drawnow;
+figure(7); clf; drawnow;
 h = axes;
 elf_plot_image(im_projRP2, infoSumRP2, h, 'equisolid', 'bright');
 title(sprintf('RP equidistant\n%.2f seconds', tocX2))
 
-figure(5); clf; drawnow;
+figure(8); clf; drawnow;
 h = axes;
 elf_plot_image(im_projRP3, infoSumRP3, h, 'equisolid', 'bright');
 title(sprintf('RP stereographic\n%.2f seconds', tocX3))
 
-figure(6); clf; drawnow;
+figure(9); clf; drawnow;
 h = axes;
 elf_plot_image(im_projRP4, infoSumRP4, h, 'equisolid', 'bright')
 title(sprintf('RP orthographic\n%.2f seconds', tocX4))

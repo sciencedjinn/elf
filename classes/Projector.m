@@ -31,7 +31,9 @@ classdef Projector
     methods
         function obj = Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength)
             %PROJECTOR Construct an instance of this class directly
-            %   You can also use obj = Projector.fromInfoStructs(I_info, projInfo, azi, ele) to create an object
+            %
+            % Also see: Projector.fromInfoStructs, Projector.fromImageCircle
+
             obj.Size = imSize;
             obj.ProjectionType = projectionType;
 
@@ -54,7 +56,7 @@ classdef Projector
             if nargin<6 || isempty(pixPerMM)
                 % set pixPerMM to create a filled image
                 shortSide = min(imSize(1:2));
-                imageCircleRadius = theta2r(obj, 90);
+                imageCircleRadius = obj.theta2r(90);
                 pixPerMM = shortSide / 2 / imageCircleRadius;
             end
             obj.PixPerMM = pixPerMM;
@@ -93,8 +95,26 @@ classdef Projector
             corrFocalLength = I_info.FocalLength * projInfo.RCorr;   
             midPoint = [(imSize(1)+1)/2+projInfo.HCorr; (imSize(2)+1)/2+projInfo.WCorr];        % centre of image
 
-            obj =  Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength);
-            
+            obj = Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength);   
+        end
+
+        function obj = fromImageCircle(oldProj, imageCircleRadius_deg)
+            %PROJECTOR.FROMIMAGECIRCLE Construct an instance of this class by cropping an old class to a certain image circle radius (in degrees)
+            %
+            % Also see: Projector.fromInfoStructs, Projector
+
+            pixPerMM = oldProj.PixPerMM;
+            projectionType = oldProj.ProjectionType;
+            erAzi = oldProj.ErAzi;
+            erEle = oldProj.ErEle;
+            corrFocalLength = oldProj.CorrFocalLength;
+
+            d_pix = ceil(2*oldProj.theta2r(imageCircleRadius_deg)*pixPerMM);
+
+            imSize = [d_pix, d_pix, oldProj.Size(3)];
+            midPoint = [(imSize(1)+1)/2; (imSize(2)+1)/2];
+           
+            obj = Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength);            
         end
     end
 
@@ -103,7 +123,7 @@ classdef Projector
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
         function theta_deg = r2theta(obj, R_mm)
-            % angle between point in the real world and the optical axis
+            %PROJECTOR.R2THETA transforms R (the radial excentricity of a point on the chip in mm) to theta (the excentricity angle in degrees)
             switch obj.ProjectionType
                 case {"equisolid", "default"}
                     theta_deg = 2 * asind(R_mm / 2 / obj.CorrFocalLength);
@@ -119,6 +139,7 @@ classdef Projector
         end
 
         function R_mm = theta2r(obj, theta_deg)
+            %PROJECTOR.THETA2R transforms theta (a point's excentricity angle in degrees) to R (the radial excentricity on the chip in mm)
             switch obj.ProjectionType
                 case {"equisolid", "default"}
                     R_mm = 2 * obj.CorrFocalLength * sind(theta_deg / 2);
@@ -225,6 +246,7 @@ classdef Projector
 
         function [w2, h2] = pix2pix(obj, targetProjector, w, h, rotation)
             % TODO: Docs
+            if nargin<5 || isempty(rotation), rotation=0; end
             [X, Y, Z]    = obj.pix2cart(w, h, rotation);
             [w2, h2]     = targetProjector.cart2pix(X, Y, Z);            
         end
@@ -270,7 +292,7 @@ classdef Projector
             grids.rect.x(grids.rect.x==0) = NaN;    % 0 indicates the element was not found
             grids.rect.y(grids.rect.y==0) = NaN;
 
-            Logger.log(LogLevel.INFO, '\t\tdone.\n')
+            Logger.log(LogLevel.INFO, '\bdone.\n')
         end
 
         function projection_ind = calculateProjection(obj, rotation)
@@ -287,15 +309,34 @@ classdef Projector
             [azi_grid, ele_grid] = meshgrid(azi, ele);                    % grid of desired angles
             [w_im, h_im]         = obj.rect2pix(azi_grid, ele_grid, rotation);
             projection_ind       = obj.sub2ind(obj.Size, w_im, h_im);
-            Logger.log(LogLevel.INFO, '\t\tdone.\n');
+            Logger.log(LogLevel.INFO, '\bdone.\n');
         end
 
         function [projection_ind, newProjector] = fisheye2fisheyeProjection(obj, projectionType_new, imSize_new, rotation)
-            % TODO: Allow for image circle cropping
+            % FISHEYE2FISHEYEPROJECTION calculates a projection index to warp an image into a different fisheye projection
+            % It is also possible to retain the same projection but resize the image.
+            % This function uses a simple nearest-neighbour strategy; there is no interpolation.
+            % Also creates a Projector object for the new image projection.
+
             newProjector = Projector(imSize_new, projectionType_new);
 
             [w_grid, h_grid]   = meshgrid(1:imSize_new(2), 1:imSize_new(1));          % grid of desired output image coordinates
             [w2_grid, h2_grid] = newProjector.pix2pix(obj, w_grid, h_grid, rotation);
+            sel                = w2_grid>obj.Size(2) | w2_grid<1 | h2_grid>obj.Size(1) | h2_grid<1;
+            w2_grid(sel)       = NaN; 
+            h2_grid(sel)       = NaN;
+            projection_ind     = obj.sub2ind(obj.Size, w2_grid, h2_grid);
+        end
+
+        function [projection_ind, newProjector] = crop2ImageCircle(obj, maxRadius_deg)
+            % CROP2IMAGECIRCLE calculates a projection index to crop an image tightly around an image circle with a given radius. Even if the original
+            % image is off-centre, the new image will be centred.
+            % Also creates a Projector object for the new image projection.
+
+            newProjector = Projector.fromImageCircle(obj, maxRadius_deg);
+
+            [w_grid, h_grid]   = meshgrid(1:newProjector.Size(2), 1:newProjector.Size(1));          % grid of desired output image coordinates
+            [w2_grid, h2_grid] = newProjector.pix2pix(obj, w_grid, h_grid);
             sel                = w2_grid>obj.Size(2) | w2_grid<1 | h2_grid>obj.Size(1) | h2_grid<1;
             w2_grid(sel)       = NaN; 
             h2_grid(sel)       = NaN;
@@ -325,7 +366,7 @@ classdef Projector
             ele_ind(sel)             = NaN;
             % and create linear index vector
             projection_ind           = obj.sub2ind([length(ele) length(azi) obj.Size(3)], azi_ind, ele_ind);
-            Logger.log(LogLevel.INFO, '\t\tdone.\n');
+            Logger.log(LogLevel.INFO, '\bdone.\n');
         end
 
         function im_fisheye = fastBackProjection(obj, im, rotation, method)
