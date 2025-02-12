@@ -41,7 +41,7 @@ para.stages.calculateInt = false;
 para.saveSceneTifs = false;
 
 %% Calculate black levels for all images (from calibration or dark images)
-[info, ~, infoSum.blackWarnings] = elf_calibrate_blackLevels(info, imgFormat);
+[info, ~, infoSum.blackWarnings] = Calibrator.calculateBlackLevels(info, imgFormat);
 cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourcalibtype);
 proj = Projector(infoSum, cal.ProjectionInfo);
 

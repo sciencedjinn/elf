@@ -21,6 +21,12 @@ classdef Calibrator
         Acf     % Aperture correction factor in new d850 calibration
         SpectralMatrix
     end
+
+    % methods in other files
+    methods (Static)
+        [info, srcs, warnings] = calculateBlackLevels(info, imgformat)
+        % CALIBRATOR.CALCULATEBLACKLEVELS detects and loads dark images, if they are present. Results are directly written into info as a blackLevels field
+    end
     
     %%%%%%%%%%%%%%%%%
     %% CONSTRUCTOR %%

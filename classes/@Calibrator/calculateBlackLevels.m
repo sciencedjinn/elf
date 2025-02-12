@@ -1,5 +1,5 @@
-function [info, srcs, warnings] = elf_calibrate_blackLevels(info, imgformat)
-% ELF_CALIBRATE_BLACKLEVELS detects and loads dark images, if they are present. Results are directly written into info as a blackLevels field
+function [info, srcs, warnings] = calculateBlackLevels(info, imgformat)
+% CALIBRATOR.CALCULATEBLACKLEVELS detects and loads dark images, if they are present. Results are directly written into info as a blackLevels field
 %
 % Inputs:
 %   info - 1 x n info structure, containing the exif information of the raw image files (created by elf_info_collect)
