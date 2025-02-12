@@ -8,3 +8,4 @@ modules
 obs
 beta
 config/*.env
+local_optimisation_tests
