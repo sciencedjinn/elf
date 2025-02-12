@@ -1,52 +1,100 @@
 classdef Projector
-    % PROJECTOR represents a circular fisheye/hemispherical image and provides methods to project or plot it
+    % PROJECTOR provides methods to change the projection of fisheye images
     %
-    % Call sequence: elf -> elf_main1_HdrAndInt -> FisheyeImage
+    % Call sequence: elf -> elf_main1_HdrAndInt -> Projector
     %
     % See also: Calibrator
 
     properties(SetAccess=immutable)
-        Data
-        Height
-        Width
-        SamplesPerChannel
-        ProjectionType
-        XCorr(1,1) double = 0 % correction for centre in X (width) (obtained from calibration for imperfect lens)
-        YCorr(1,1) double = 0 % correction for centre in Y (height) (obtained from calibration for imperfect lens)
-        RCorr(1,1) double = 1 % correction multiplier for R (obtained from calibration for imperfect lens)
+        Size                  % [height, width, number of channels] of the original fisheye image
+        ProjectionType        % type of fisheye projection in the original image, e.g. "equisolid"
+        ErAzi                 % azimuth vector (as [start step end]) for the equirectangular projection; e.g. -90:0.1:90
+        ErEle                 % elevation vector (as [start step end]) for the equirectangular projection; e.g. 90:-0.1:-90
+        MidPoint              % image centre in h/w
+        PixPerMM              % pixel density  (assumed to be equal in both dimensions) of the chip
+        CorrFocalLength       % the "effective" focal length (real focal length * a correction factor to match the observed image circle)
     end
 
-    properties(Access=protected)
-        MidPoint % Image centre in x/y
-        PixPerMM
-        CorrFocalLength
+    properties(Dependent,Transient)
+        RectSize              % [H,W,C] size of the equirectangular image
     end
     
-    %%%%%%%%%%%%%%%%%
-    %% CONSTRUCTOR %%
-    %%%%%%%%%%%%%%%%%
     methods
-        function obj = Projector(I_info, projInfo)
-            %PROJECTOR Construct an instance of this class
-            %   Detailed explanation goes here
+        function s = get.RectSize(obj)
+            s = [floor((obj.ErEle(3)-obj.ErEle(1))/obj.ErEle(2)+1), floor((obj.ErAzi(3)-obj.ErAzi(1))/obj.ErAzi(2)+1), obj.Size(3)];
+        end
+    end
+
+    %%%%%%%%%%%%%%%%%%
+    %% CONSTRUCTORS %%
+    %%%%%%%%%%%%%%%%%%
+    methods
+        function obj = Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength)
+            %PROJECTOR Construct an instance of this class directly
+            %   You can also use obj = Projector.fromInfoStructs(I_info, projInfo, azi, ele) to create an object
+            obj.Size = imSize;
+            obj.ProjectionType = projectionType;
+
+            if nargin<3 || isempty(erAzi), erAzi = [-90, 0.1, 90]; end
+            obj.ErAzi = erAzi;
+
+            if nargin<4 || isempty(erEle), erEle = [90, -0.1, -90]; end
+            obj.ErEle = erEle;
+
+            if nargin<5 || isempty(midPoint)
+                midPoint = [(imSize(1)+1)/2; (imSize(2)+1)/2];
+            end
+            obj.MidPoint = midPoint;
+
+            if nargin<7 || isempty(corrFocalLength)
+                corrFocalLength = 8;
+            end
+            obj.CorrFocalLength = corrFocalLength;
+
+            if nargin<6 || isempty(pixPerMM)
+                % set pixPerMM to create a filled image
+                shortSide = min(imSize(1:2));
+                imageCircleRadius = theta2r(obj, 90);
+                pixPerMM = shortSide / 2 / imageCircleRadius;
+            end
+            obj.PixPerMM = pixPerMM;
+        end
+    end
+
+    methods(Static)
+        function obj = fromInfoStructs(I_info, projInfo, erAzi, erEle)
+            %PROJECTOR.FROMINFOSTRUCTS Construct an instance of this class from info structs
+            %
             % Inputs:
             %   I_info   - exif information structure, needed fields: Height, Width, SamplesPerPixel, FocalLength
             %   projInfo - additional projection information that is not included in EXIF information, or needs to be calibrated
-            %                 (obtained from Calibrator object), needed fields: ChipWidth, ChipHeight, Type, RCorr, WCorr, HCorr
+            %                 (obtained from Calibrator object), needed fields: 
+            %                   .ChipWidth - chip width in mm 
+            %                   .ChipHeight - chip height in mm 
+            %                   .Type - type of fisheye projection in the original image, e.g. "equisolid"
+            %                   .RCorr - correction multiplier for R (obtained from calibration for imperfect lens)
+            %                   .WCorr - correction for centre in height (obtained from calibration for imperfect lens)
+            %                   .HCorr - correction for centre in width (obtained from calibration for imperfect lens)
+            %   erAzi, erEle - output angle ranges defining the desired grid of the projected images (default [-90, 0.1, 90], and [90, -0.1, -90])
+
+
+            if nargin<4 || isempty(erEle), erEle = [90, -0.1, -90]; end
+            if nargin<3 || isempty(erAzi), erAzi = [-90, 0.1, 90]; end
 
             Logger.log(LogLevel.INFO, 'Creating a Projector object for %s camera\n', I_info.Model{1})
 
-            obj.Height = I_info.Height;
-            obj.Width = I_info.Width;
-            obj.SamplesPerChannel = I_info.SamplesPerPixel;
-            obj.ProjectionType = projInfo.Type;
+            imSize = [I_info.Height, I_info.Width, I_info.SamplesPerPixel];
+            projectionType = projInfo.Type;
 
-            shortSide = min([I_info.Height I_info.Width]);
+            shortSide = min(imSize(1:2));
             chipShortSide = min([projInfo.ChipHeight projInfo.ChipWidth]);
 
-            obj.PixPerMM = shortSide / chipShortSide;
-            obj.CorrFocalLength = I_info.FocalLength * projInfo.RCorr;   
-            obj.MidPoint = [(I_info.Height+1)/2+projInfo.HCorr; (I_info.Width+1)/2+projInfo.WCorr];        % centre of image
+            pixPerMM = shortSide / chipShortSide;
+            corrFocalLength = I_info.FocalLength * projInfo.RCorr;   
+            midPoint = [(imSize(1)+1)/2+projInfo.HCorr; (imSize(2)+1)/2+projInfo.WCorr];        % centre of image
+
+            obj =  Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength);
+            
         end
     end
 
@@ -115,12 +163,17 @@ classdef Projector
             theta_deg = obj.r2theta(R_mm);
 
             r_yz = sind(theta_deg);
-            r_yz(~isreal(r_yz)) = NaN; % set to NaN some points far out of the image circle
-            r_yz = real(r_yz);
-
+            
             X = cosd(theta_deg);
             Y = r_yz .* cosd(gamma);
-            Z = r_yz .* -sind(gamma); % This minus makes sure that low image indices are mapped onto high-elevation points 
+            Z = r_yz .* -sind(gamma); % This minus makes sure that low image indices are mapped onto high-elevation points
+
+            X(~isreal(X)) = NaN; % set to NaN some points far out of the image circle
+            X = real(X);
+            Y(~isreal(Y)) = NaN; % set to NaN some points far out of the image circle
+            Y = real(Y);
+            Z(~isreal(Z)) = NaN; % set to NaN some points far out of the image circle
+            Z = real(Z);
         end
 
         function [w, h] = cart2pix(obj, X, Y, Z, rotation, roundIt)
@@ -170,21 +223,21 @@ classdef Projector
             [w, h]       = obj.cart2pix(X, Y, Z, rotation);
         end
 
-        function I_info = getProjectionInfo(obj, I_info, azi, ele, rotation)
-            % GETPROJECTIONINFO creates a grids for plotting
-            %
-            % Inputs:
-            % I_info     - Image information structure to write grids to % TODO: Make it a substruct
-            % azi, ele   - output angle ranges defining the desired grid of the projected images (default -90:0.1:90, and 90:-0.1:-90)
+        function [w2, h2] = pix2pix(obj, targetProjector, w, h, rotation)
+            % TODO: Docs
+            [X, Y, Z]    = obj.pix2cart(w, h, rotation);
+            [w2, h2]     = targetProjector.cart2pix(X, Y, Z);            
+        end
+
+        function grids = getProjectionInfo(obj, rotation)
+            % GETPROJECTIONINFO creates the grids for plotting on top of the fisheye and equirectangular image
             %
             % Outputs:
-            % I_info     - Image information structure with projection grids added. These can be used in plotting.
+            % grids     - projection grids structure. These can be used in plotting.
 
-            % Uses: elf_project_rect2fisheye, which uses Projector.sub2ind
-
-            if nargin<6 || isempty(rotation), rotation = 0; end
-            if nargin<5 || isempty(ele), ele = 90:-0.1:-90; end
-            if nargin<4 || isempty(azi), azi = -90:0.1:90; end
+            if nargin<3 || isempty(rotation), rotation = 0; end
+            grids.azi = obj.ErAzi(1):obj.ErAzi(2):obj.ErAzi(3);
+            grids.ele = obj.ErEle(1):obj.ErEle(2):obj.ErEle(3);
 
             Logger.log(LogLevel.INFO, '\tCalculating projection grids...\n');
 
@@ -209,74 +262,73 @@ classdef Projector
             gazi                 = [gazi1(:); gazi2(:)];
             gele                 = [gele1(:); gele2(:)];
 
-            [I_info.ori_grid_x, I_info.ori_grid_y] = obj.rect2pix(gazi, gele, rotation);
+            [grids.fisheye.x, grids.fisheye.y] = obj.rect2pix(gazi, gele, rotation);
 
             % b) grid for projected image (assumes that grid points are included in image grid)
-            [~, I_info.proj_grid_x] = ismember(gazi, azi);
-            [~, I_info.proj_grid_y] = ismember(gele, ele);
-            I_info.proj_grid_x(I_info.proj_grid_x==0) = NaN;    % 0 indicates the element was not found
-            I_info.proj_grid_y(I_info.proj_grid_y==0) = NaN;
-
-            I_info.proj_azi      = azi;
-            I_info.proj_ele      = ele;
+            [~, grids.rect.x] = ismember(gazi, grids.azi);
+            [~, grids.rect.y] = ismember(gele, grids.ele);
+            grids.rect.x(grids.rect.x==0) = NaN;    % 0 indicates the element was not found
+            grids.rect.y(grids.rect.y==0) = NaN;
 
             Logger.log(LogLevel.INFO, '\t\tdone.\n')
         end
 
-        function projection_ind = calculateProjection(obj, azi, ele, rotation)
+        function projection_ind = calculateProjection(obj, rotation)
             % CALCULATEPROJECTION creates a projection index vector to transform a fisheye image into a equirectangular (azimuth/elevation) grid
-            %
-            % Inputs:
-            % azi, ele   - output angle ranges defining the desired grid of the projected images (default -90:0.1:90, and 90:-0.1:-90)
             %
             % Outputs:
             % projection_ind  - projections index matrix. The projected image can be calculated as im_proj = im(projection_ind)
 
-            if nargin<4 || isempty(rotation), rotation = 0; end
-            if nargin<3 || isempty(ele), ele = 90:-0.1:-90; end
-            if nargin<2 || isempty(azi), azi = -90:0.1:90; end
+            if nargin<2 || isempty(rotation), rotation = 0; end
+            azi = obj.ErAzi(1):obj.ErAzi(2):obj.ErAzi(3);
+            ele = obj.ErEle(1):obj.ErEle(2):obj.ErEle(3);
 
             Logger.log(LogLevel.INFO, '\tCalculating projection constants...\n');
             [azi_grid, ele_grid] = meshgrid(azi, ele);                    % grid of desired angles
             [w_im, h_im]         = obj.rect2pix(azi_grid, ele_grid, rotation);
-            projection_ind       = obj.sub2ind([obj.Height obj.Width obj.SamplesPerChannel], w_im, h_im);
+            projection_ind       = obj.sub2ind(obj.Size, w_im, h_im);
             Logger.log(LogLevel.INFO, '\t\tdone.\n');
         end
 
-        function projection_ind = calculateBackProjection(obj, azi, ele, rotation)
+        function [projection_ind, newProjector] = fisheye2fisheyeProjection(obj, projectionType_new, imSize_new, rotation)
+            % TODO: Allow for image circle cropping
+            newProjector = Projector(imSize_new, projectionType_new);
+
+            [w_grid, h_grid]   = meshgrid(1:imSize_new(2), 1:imSize_new(1));          % grid of desired output image coordinates
+            [w2_grid, h2_grid] = newProjector.pix2pix(obj, w_grid, h_grid, rotation);
+            sel                = w2_grid>obj.Size(2) | w2_grid<1 | h2_grid>obj.Size(1) | h2_grid<1;
+            w2_grid(sel)       = NaN; 
+            h2_grid(sel)       = NaN;
+            projection_ind     = obj.sub2ind(obj.Size, w2_grid, h2_grid);
+        end
+
+        function projection_ind = calculateBackProjection(obj, rotation)
             % CALCULATEBACKPROJECTION creates a projection index vector to transform an equirectangular image back to a fisheye image
-            %
-            % Inputs:
-            % azi, ele   - output angle ranges defining the grid of the equirectangular images (default -90:0.1:90, and 90:-0.1:-90)
             %
             % Outputs:
             % projection_ind  - projections index matrix. The projected image can be calculated as im_proj = im(projection_ind)
 
-            if nargin<4 || isempty(rotation), rotation = 0; end
-            if nargin<3 || isempty(ele), ele = 90:-0.1:-90; end
-            if nargin<2 || isempty(azi), azi = -90:0.1:90; end
-
-            %% Calculate azi/ele sampling
-            if length(unique(round(1./diff(azi))))>1, error('azi MUST be evenly sampled.'); else, azires = mean(diff(azi)); end
-            if length(unique(round(1./diff(ele))))>1, error('ele MUST be evenly sampled.'); else, eleres = mean(diff(ele)); end
+            if nargin<2 || isempty(rotation), rotation = 0; end
+            azi = obj.ErAzi(1):obj.ErAzi(2):obj.ErAzi(3);
+            ele = obj.ErEle(1):obj.ErEle(2):obj.ErEle(3);
             
             %% Calculate main projections   
             Logger.log(LogLevel.INFO, '\tCalculating projection constants...\n');     
-            [w_grid, h_grid]         = meshgrid(1:obj.Width, 1:obj.Height);          % grid of desired output image coordinates
-            [target_azi, target_ele] = obj.pix2rect(w_grid, h_grid, rotation);   % TODO: Replace with Projector.pix2rect
+            [w_grid, h_grid]         = meshgrid(1:obj.Size(2), 1:obj.Size(1));          % grid of desired output image coordinates
+            [target_azi, target_ele] = obj.pix2rect(w_grid, h_grid, rotation);
             % calculate azi/ele index vectors
-            azi_ind                  = (target_azi - azi(1)) / azires + 1;
-            ele_ind                  = (target_ele - ele(1)) / eleres + 1;
+            azi_ind                  = (target_azi - azi(1)) / obj.ErAzi(2) + 1;
+            ele_ind                  = (target_ele - ele(1)) / obj.ErEle(2) + 1;
             % remove out-of-bounds azi and ele pairs
             sel                      = target_azi>max(azi) | target_azi<min(azi) | target_ele>max(ele) | target_ele<min(ele);
             azi_ind(sel)             = NaN; 
             ele_ind(sel)             = NaN;
             % and create linear index vector
-            projection_ind           = obj.sub2ind([length(ele) length(azi) obj.SamplesPerChannel], azi_ind, ele_ind);
+            projection_ind           = obj.sub2ind([length(ele) length(azi) obj.Size(3)], azi_ind, ele_ind);
             Logger.log(LogLevel.INFO, '\t\tdone.\n');
         end
 
-        function im_fisheye = fastBackProjection(obj, im, azi, ele, rotation, method)
+        function im_fisheye = fastBackProjection(obj, im, rotation, method)
             % FASTBACKPROJECTION takes an equirectangular image and project it back to an equisolid fisheye image.
             %
             % Inputs:
@@ -289,19 +341,19 @@ classdef Projector
             % Outputs:
             % im_proj        - Output fisheye image
 
-            if nargin < 6 || isempty(method), method = 'default'; end
-            if nargin < 5 || isempty(rotation), rotation = 0; end
-            if nargin < 4 || isempty(ele), ele = linspace(-90, 90, size(im, 1)); end
-            if nargin < 3 || isempty(azi), azi = linspace(-90, 90, size(im, 2)); end
+            if nargin < 4 || isempty(method), method = 'default'; end
+            if nargin < 3 || isempty(rotation), rotation = 0; end
+            azi = obj.ErAzi(1):obj.ErAzi(2):obj.ErAzi(3);
+            ele = obj.ErEle(1):obj.ErEle(2):obj.ErEle(3);
 
             switch method
                 case {'interpolate', 'interp', 'default'}
                     [azi_grid, ele_grid]    = meshgrid(azi, ele);                                   % grid of desired angles
                     [w_im, h_im]            = obj.rect2pix(azi_grid, ele_grid, -rotation);
-                    [w_grid, h_grid]        = meshgrid(1:obj.Width, 1:obj.Height);   % grid of desired output pixels
+                    [w_grid, h_grid]        = meshgrid(1:obj.Size(2), 1:obj.Size(1));   % grid of desired output pixels
 
-                    im_fisheye              = zeros(obj.Height, obj.Width, obj.SamplesPerChannel); % pre-allocate
-                    for ch = 1:obj.SamplesPerChannel % for each channel
+                    im_fisheye              = zeros(obj.Size); % pre-allocate
+                    for ch = 1:obj.Size(3) % for each channel
                         thisch               = im(:, :, ch);
                         warning('off', 'MATLAB:griddata:DuplicateDataPoints');
                         im_fisheye(:, :, ch) = griddata(h_im(:), w_im(:), thisch(:), h_grid, w_grid, 'cubic'); %#ok<GRIDD>
@@ -313,8 +365,8 @@ classdef Projector
                     end
                     im_fisheye = obj.blackout(im_fisheye); % set points beyond 90 degrees to 0
                 case {'nearestneighbour', 'nn', 'nearestpixel'}
-                    projection_ind           = calculateBackProjection(azi, ele, rotation);
-                    im_temp                  = Projector.apply(im, projection_ind, [obj.Height, obj.Width, obj.SamplesPerChannel]);
+                    projection_ind           = obj.calculateBackProjection(rotation);
+                    im_temp                  = Projector.apply(im, projection_ind, obj.Size);
                     im_fisheye               = obj.blackout(im_temp);
             end
         end
@@ -333,13 +385,13 @@ classdef Projector
             if nargin<4 || isempty(zeroValue), zeroValue = 0; end
             if nargin<3 || isempty(excLimit), excLimit = 90; end
             
-            [w, h]      = meshgrid(1:obj.Width, 1:obj.Height);
+            [w, h]      = meshgrid(1:obj.Size(2), 1:obj.Size(1));
             r           = sqrt((h-obj.MidPoint(1)).^2 + (w-obj.MidPoint(2)).^2);
             R_mm        = r / obj.PixPerMM;
             theta_deg   = obj.r2theta(R_mm);
             sel         = theta_deg>excLimit;
-            tempim      = cell(obj.SamplesPerChannel, 1);
-            for i = 1:obj.SamplesPerChannel
+            tempim      = cell(obj.Size(3), 1);
+            for i = 1:obj.Size(3)
                 tempim{i} = im(:, :, i); 
                 tempim{i}(sel) = zeroValue;
             end
@@ -365,7 +417,7 @@ classdef Projector
             % im            - the projected image
             %
             % Usage example:
-            % proj           = Projector(I_info, projInfo)
+            % proj           = Projector.fromInfoStructs(I_info, projInfo)
             % [w_im, h_im]   = proj.rect2pix(azi, ele);
             % imsize_fisheye = [I_info.Height I_info.Width I_info.SamplesPerPixel];
             % ind            = Projector.sub2ind(imsize_fisheye, w_im, h_im)
@@ -391,7 +443,7 @@ classdef Projector
             % projection_ind    - projections index matrix. The projected image can be calculated as im_proj = im(projection_ind)
             %
             % Example:
-            % proj           = Projector(I_info, projInfo)
+            % proj           = Projector.fromInfoStructs(I_info, projInfo)
             % [w_im, h_im]   = proj.rect2pix(azi, ele);
             % imsize_fisheye = [I_info.Height I_info.Width I_info.SamplesPerPixel];
             % ind            = Projector.sub2ind(imsize_fisheye, w_im, h_im)

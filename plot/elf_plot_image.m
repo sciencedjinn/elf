@@ -94,7 +94,7 @@ switch proj
     case {'equisolid', 'default'}
         % plot grid
         hold(ha, 'on');
-        plot(ha, I_info.ori_grid_x, I_info.ori_grid_y, 'k:');
+        plot(ha, I_info.grids.fisheye.x, I_info.grids.fisheye.y, 'k:');
         
         % remove axis
         axis(ha, 'off');
@@ -128,11 +128,11 @@ switch proj
     case 'equirectangular'
         % plot grid
         hold(ha, 'on');
-        plot(ha, I_info.proj_grid_x, I_info.proj_grid_y, 'k:');
+        plot(ha, I_info.grids.rect.x, I_info.grids.rect.y, 'k:');
         
         %calculate x-ticks and y-ticks
-        azi = I_info.proj_azi; % This information should have been added during projection
-        ele = I_info.proj_ele; 
+        azi = I_info.grids.azi; % This information should have been added during projection
+        ele = I_info.grids.ele; 
         [ism, xpos] = ismember(-90:30:90, azi); 
         xts = sort(xpos(ism)); % XTick sorted
         [ism, ypos] = ismember(-90:30:90, ele); 
@@ -149,8 +149,8 @@ switch proj
         end
         
     case 'equirectangular_summary' 
-        azi = I_info.proj_azi; % This information should have been added during projection
-        ele = I_info.proj_ele; 
+        azi = I_info.grids.azi; % This information should have been added during projection
+        ele = I_info.grids.ele; 
 
         % plot grid
         hold(ha, 'on');
@@ -176,8 +176,8 @@ switch proj
         end
 
     case 'equirectangular_summary_squished' 
-        azi = I_info.proj_azi; % This information should have been added during projection
-        ele = I_info.proj_ele; 
+        azi = I_info.grids.azi; % This information should have been added during projection
+        ele = I_info.grids.ele; 
 
         % plot grid
         hold(ha, 'on');

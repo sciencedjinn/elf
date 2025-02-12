@@ -69,9 +69,9 @@ para.ana  = elf_analysisPara; % analysis parameters (all ELF analysis has to be 
 para.plot = elf_plottingPara; % plotting parameters (will be loaded again at plotting time)
 
 %% projection constants (don't change)
-para.azi                    = -90:.1/para.ana.resolutionBooster:90;          % regular elevation sampling for equirectangular projection
-para.ele                    = -90:.1/para.ana.resolutionBooster:90;          % regular azimuth sampling for equirectangular projection
-para.ele2                   = rot90(para.ele,2);
+para.azi                    = [-90, .1/para.ana.resolutionBooster, 90];          % regular elevation sampling for equirectangular projection
+para.ele                    = [-90, .1/para.ana.resolutionBooster, 90];          % regular azimuth sampling for equirectangular projection
+para.ele2                   = [90, -.1/para.ana.resolutionBooster, -90];
 para.projtype               = 'equisolid';        % if this is 'noproj', no projection will be calculated (original images should be 1801x1801)
 
 %% analysis constants

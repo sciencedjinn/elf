@@ -43,15 +43,15 @@ para.saveSceneTifs = false;
 %% Calculate black levels for all images (from calibration or dark images)
 [info, ~, infoSum.blackWarnings] = Calibrator.calculateBlackLevels(info, imgFormat);
 cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourcalibtype);
-proj = Projector(infoSum, cal.ProjectionInfo);
+proj = Projector.fromInfoStructs(infoSum, cal.ProjectionInfo, para.azi, para.ele2);
 
 %% Set up projection constants
 % Calculate a projection vector to transform an orthographic/equidistant/equisolid input image into an equirectangular output image
-% Also creates I_info.ori_grid_x1, I_info.ori_grid_y1 (and 2) which can be used to plot a 10 degree resolution grid onto the original image
+% Also creates I_info.grids
 if para.stages.project
-    projection_ind = proj.calculateProjection(para.azi, para.ele2, rotation);
+    projection_ind = proj.calculateProjection(rotation);
 end
-infoSum = proj.getProjectionInfo(infoSum, para.azi, para.ele2, rotation);
+infoSum.grids = proj.getProjectionInfo(rotation);
 elf_io_readwrite(para, 'saveinfosum', [], infoSum); % saves infosum AND para for use in later stages
 
 %% Step 1: Unwarp images and calculate HDR scenes
@@ -66,13 +66,13 @@ for iSet = 1:size(sets, 1)
     setEnd      = sets(iSet, 2);          % last image in this set
     nIms        = setEnd - setStart + 1;  % total number of images in this set
     if para.stages.project
-        im_proj     = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, nIms);  % pre-allocate
-        conf_proj   = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, nIms);  % pre-allocate
+        im_proj     = zeros(proj.RectSize(1), proj.RectSize(2), proj.RectSize(3), nIms);  % pre-allocate
+        conf_proj   = zeros(proj.RectSize(1), proj.RectSize(2), proj.RectSize(3), nIms);  % pre-allocate
     else
-        im_proj     = zeros(infoSum.Height, infoSum.Width, infoSum.SamplesPerPixel, nIms);  % pre-allocate
-        conf_proj   = zeros(infoSum.Height, infoSum.Width, infoSum.SamplesPerPixel, nIms);  % pre-allocate
+        im_proj     = zeros(proj.Size(1), proj.Size(2), proj.Size(3), nIms);  % pre-allocate
+        conf_proj   = zeros(proj.Size(1), proj.Size(2), proj.Size(3), nIms);  % pre-allocate
     end
-%     im_proj_cal = zeros(length(para.ele), length(para.azi), infoSum.SamplesPerPixel, numims);  % pre-allocate
+%     im_proj_cal = zeros(lEle, lAzi, infoSum.SamplesPerPixel, numims);  % pre-allocate
     rawWhiteLevels = zeros(3, nIms);        % pre-allocate; raw white levels (after black subtraction)
     
     for i = 1:nIms % for each image in this set
@@ -86,8 +86,8 @@ for iSet = 1:size(sets, 1)
         
         % Umwarp image
         if para.stages.project
-            im_proj(:, :, :, i) = Projector.apply(im_cal, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
-            conf_proj(:, :, :, i)   = Projector.apply(conf, projection_ind, [length(para.ele) length(para.azi) infoSum.SamplesPerPixel]);
+            im_proj(:, :, :, i) = Projector.apply(im_cal, projection_ind, proj.RectSize);
+            conf_proj(:, :, :, i)   = Projector.apply(conf, projection_ind, proj.RectSize);
         else
             im_proj(:, :, :, i) = im_cal;
             conf_proj(:, :, :, i) = conf;
@@ -130,7 +130,7 @@ for iSet = 1:size(sets, 1)
                 error('Currently not supported!')
     %             [res.int, res.totalint] = elf_analysis_int(im_proj_cal, para.ele2, 'histcomb', para.ana.hdivn_int, para.ana.rangeperc, setnr==1, conf_proj, confFactors); % verbose output (analysis parameters) only for the first set
             case 'hdr' % Calculate histograms from HDR image (current default in para)
-                [res.int, res.totalint] = elf_analysis_int(im_HDR_cal, para.ele2, 'hdr', para.ana.hdivn_int, para.ana.rangeperc, iSet==1); % verbose output (analysis parameters) only for the first set
+                [res.int, res.totalint] = elf_analysis_int(im_HDR_cal, para.ele2(1):para.ele2(2):para.ele2(3), 'hdr', para.ana.hdivn_int, para.ana.rangeperc, iSet==1); % verbose output (analysis parameters) only for the first set
             otherwise
                 error('Unknown intensity calculation method: %s', para.ana.intanalysistype);
         end

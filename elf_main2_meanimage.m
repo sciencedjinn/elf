@@ -32,7 +32,7 @@ para.stages.project = false;
 
 %% Calculate mean image and thumbs
 if para.stages.project
-    sumImage    = zeros(length(infoSum.proj_ele), length(infoSum.proj_azi), infoSum.SamplesPerPixel, 'double');  % pre-allocate for sum of all processed images
+    sumImage    = zeros(length(infoSum.grids.ele), length(infoSum.grids.azi), infoSum.SamplesPerPixel, 'double');  % pre-allocate for sum of all processed images
 else
     sumImage    = zeros(infoSum.Height, infoSum.Width, infoSum.SamplesPerPixel, 'double');  % pre-allocate for sum of all processed images
 end
