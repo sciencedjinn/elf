@@ -32,7 +32,7 @@ s = warning('off', 'MATLAB:plot:IgnoreImaginaryXYPart');
 %% MAIN PLOT: for each channel, extract and plot the percentiles
 for ch = 1:nch
     if plotPara.mainChannelsActive{ch}
-        switch plotPara.intmeantype
+        switch plotPara.intMeanType
             case 'mean'
                 imean = d.means(ch,:);
                 imax  = d.max(ch,:);
@@ -61,7 +61,7 @@ end
 %% MAIN PLOT: for each channel, plots the means
 for ch = 1:nch
     if plotPara.mainChannelsActive{ch}
-        switch plotPara.intmeantype
+        switch plotPara.intMeanType
             case 'mean'
                 imean = d.means(ch,:);
             case 'median'
@@ -122,7 +122,7 @@ axis(h.ahReferenceLabels, [axLims(1:2) 0 1], 'off');
 %% COLOUR PLOT: Spectral band plot; plot RGB normalised to W
 if ~isempty(h.ahColourPlot)
     for ch = 1:nch-1
-        switch plotPara.intmeantype
+        switch plotPara.intMeanType
             case 'mean'
                 imean = d.means(ch, :) ./ d.means(end, :);
             case 'median'
@@ -165,7 +165,7 @@ if ~isempty(h.ahRangePlot)
     % for each channel, extract and plot the percentiles
     for ch = 1:nch
         if plotPara.rangeChannelsActive{ch}
-            switch plotPara.intmeantype
+            switch plotPara.intMeanType
                 case 'mean'
                     imean = d.means(ch,:);
                     imax  = d.max(ch,:);

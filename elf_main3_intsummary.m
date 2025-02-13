@@ -32,7 +32,7 @@ fNames_im       = {info.Filename};                                              
                     
 %% Load data, calculate data mean
 data            = elf_io_readwrite(para, 'loadres', fNames_im);
-intMean         = elf_analysis_datasetmean(data, 1:length(data), 1, para.plot.datasetmeantype);                                   % Calculate descriptor mean only for intensities
+intMean         = elf_analysis_datasetmean(data, 1:length(data), 1, para.plot.datasetMeanType);                                   % Calculate descriptor mean only for intensities
 elf_io_readwrite(para, 'savemeanres_int', '', intMean); % write data mean
 
 %% Write stats into CSV file

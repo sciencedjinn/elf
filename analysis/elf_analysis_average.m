@@ -1,7 +1,7 @@
 function res = elf_analysis_average(allrows, over, perc, varinput)
 % ELF_ANALYSIS_AVERAGE calculates relevant image statistics across strips or across the whole image.
 %   Several different statistics are always claculated, which ones are used in the final plot is 
-%   determined by para.plot.intmeantype and para.plot.inttotalmeantype.
+%   determined by para.plot.intMeanType and para.plot.intTotalMeanType.
 %
 % Inputs:
 %   allrows  - 2D cell array, usually 4xR, containing a histogram vector for each row and channel

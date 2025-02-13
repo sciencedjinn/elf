@@ -47,7 +47,10 @@ plotParameters = ...
      'GRID_TICKS', 'doublevector';
      'GRID_LINESTYLE', 'char';
      'GRID_LINEWIDTH', 'double';
-     'GRID_COLOUR', 'doublevector'};
+     'GRID_COLOUR', 'doublevector';
+     'INT_MEAN_TYPE', 'char';
+     'INT_TOTAL_MEAN_TYPE', 'char';
+     'DATASET_MEAN_TYPE', 'char';};
 
 plotP = d.extractValues('PLOT', plotParameters);
 plotP.mainChannelsActive = {plotP.mainRedActive, plotP.mainGreenActive, plotP.mainBlueActive, plotP.mainWhiteActive};
@@ -55,9 +58,3 @@ plotP.rangeChannelsActive = {plotP.rangeRedActive, plotP.rangeGreenActive, plotP
 plotP.intChannelColours = {plotP.redChannelColour, plotP.greenChannelColour, plotP.blueChannelColour, plotP.whiteChannelColour};
 plotP.intChannelLinewidths = [plotP.redChannelLinewidth, plotP.greenChannelLinewidth, plotP.blueChannelLinewidth, plotP.whiteChannelLinewidth];
 plotP.version = str2double(d.Env.VERSION);
-
-
-%%TODO
-plotP.intmeantype       = 'median';  % determines type of statistics used for intensity plots; can be 'mean' (to plot min/mean-std/mean/mean+std/max) or 'median' (to plot 5th/25th/50th/75th/95th percentiles)
-plotP.inttotalmeantype  = 'hist';    % determines type of statistics used for overall intensity plots; can be 'mean'/'median'/'hist'
-plotP.datasetmeantype   = 'logmean'; % determines how scenes are averaged across a dataset; can be 'mean'/'median'/'logmean'

@@ -1,15 +1,15 @@
-function meandata = elf_analysis_datasetmean(data, sel, intOnly, meanType)
+function meandata = elf_analysis_datasetmean(data, sel, intOnly, datasetMeanType)
 % ELF_ANALYSIS_DATASETMEAN averages intensity (and spatial) descriptors for a whole dataset.
 %   Individual descriptors should have been calculated and saved before by elf_main1_HdrAndInt.
 %
 %   Example:
-%   meandata = elf_analysis_datasetmean(data, sel, verbose, para.plot.datasetmeantype)  
+%   meandata = elf_analysis_datasetmean(data, sel, verbose, para.plot.datasetMeanType)  
 %
 % Inputs: 
 %   data              - 1 x N struct array, containing the results structs for each individual image (created earlier by elf_analysis)
 %   sel               - 1 x N bool, indicates which images to include in the calculation of the mean (default: true(1, N))
 %   intOnly           - 1 x 1 bool, whether or not to only calculate intensity descriptors and skip spatial descriptors (default: true)
-%   meanType          - str, determines which type of averaging to use, should be set to para.plot.datasetmeantype (current default: logmean)
+%   meanType          - str, determines which type of averaging to use, should be set to para.plot.datasetMeanType (current default: logmean)
 % Outputs:
 %   meandata          - 1 x 1 struct, containing the same fields as data, contains the mean results
 %
@@ -19,7 +19,7 @@ function meandata = elf_analysis_datasetmean(data, sel, intOnly, meanType)
 % See also:   elf_main3_intsummary, elf_analysis
 
 %% Check inputs
-if nargin < 4 || isempty(meanType), meanType = 'logmean'; end
+if nargin < 4 || isempty(datasetMeanType), datasetMeanType = 'logmean'; end
 if nargin < 3 || isempty(intOnly), intOnly = true; end
 if nargin < 2 || isempty(sel), sel = 1:length(data); end
     
@@ -28,86 +28,86 @@ meandata = data(1); %% FIXME: THIS IS RISKY!
 
 %% Calculate means for intensity descriptors
 % mean
-meandata.int.means = sub_mean(data(sel), 'int', 'means', meanType);
+meandata.int.means = sub_mean(data(sel), 'int', 'means', datasetMeanType);
 
 % std
-meandata.int.std = sub_mean(data(sel), 'int', 'std', meanType);
+meandata.int.std = sub_mean(data(sel), 'int', 'std', datasetMeanType);
 
 % min
 temp = sub_extract(data, 'int', 'means') - sub_extract(data, 'int', 'min');
-meandata.int.minrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.int.minrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.int.min = meandata.int.means - meandata.int.minrange;
 
 % max
 temp = sub_extract(data, 'int', 'max') - sub_extract(data, 'int', 'means');
-meandata.int.maxrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.int.maxrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.int.max = meandata.int.means + meandata.int.maxrange;
 
 % median
-meandata.int.median = sub_mean(data(sel), 'int', 'median', meanType);
+meandata.int.median = sub_mean(data(sel), 'int', 'median', datasetMeanType);
 
 % 25th percentile
 temp = sub_extract(data, 'int', 'median') - sub_extract(data, 'int', 'perc25');
-meandata.int.perc25range = sub_average(temp(:, :, sel), 3, meanType);
+meandata.int.perc25range = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.int.perc25 = meandata.int.median - meandata.int.perc25range;
 
 % 75th percentile
 temp = sub_extract(data, 'int', 'perc75') - sub_extract(data, 'int', 'median');
-meandata.int.perc75range = sub_average(temp(:, :, sel), 3, meanType);
+meandata.int.perc75range = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.int.perc75 = meandata.int.median + meandata.int.perc75range;
 
 % min percentile
 temp = sub_extract(data, 'int', 'median') - sub_extract(data, 'int', 'percmin');
-meandata.int.percminrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.int.percminrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.int.percmin = meandata.int.median - meandata.int.percminrange;
 
 % max percentile
 temp = sub_extract(data, 'int', 'percmax') - sub_extract(data, 'int', 'median');
-meandata.int.percmaxrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.int.percmaxrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.int.percmax = meandata.int.median + meandata.int.percmaxrange;
 
 %% Calculate whole-image means for intensity descriptors
 % mean
-meandata.totalint.mean = sub_mean(data(sel), 'totalint', 'mean', meanType);
+meandata.totalint.mean = sub_mean(data(sel), 'totalint', 'mean', datasetMeanType);
 
 % std
-meandata.totalint.std = sub_mean(data(sel), 'totalint', 'std', meanType);
+meandata.totalint.std = sub_mean(data(sel), 'totalint', 'std', datasetMeanType);
 
 % min
 temp = sub_extract(data, 'totalint', 'mean') - sub_extract(data, 'totalint', 'min');
-meandata.totalint.minrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.totalint.minrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.totalint.min = meandata.totalint.mean - meandata.totalint.minrange;
 
 % max
 temp = sub_extract(data, 'totalint', 'max') - sub_extract(data, 'totalint', 'mean');
-meandata.totalint.maxrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.totalint.maxrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.totalint.max = meandata.totalint.mean + meandata.totalint.maxrange;
 
 % median
-meandata.totalint.median = sub_mean(data(sel), 'totalint', 'median', meanType);
+meandata.totalint.median = sub_mean(data(sel), 'totalint', 'median', datasetMeanType);
 
 % 25th percentile
 temp = sub_extract(data, 'totalint', 'median') - sub_extract(data, 'totalint', 'perc25');
-meandata.totalint.perc25range = sub_average(temp(:, :, sel), 3, meanType);
+meandata.totalint.perc25range = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.totalint.perc25 = meandata.totalint.median - meandata.totalint.perc25range;
 
 % 75th percentile
 temp = sub_extract(data, 'totalint', 'perc75') - sub_extract(data, 'totalint', 'median');
-meandata.totalint.perc75range = sub_average(temp(:, :, sel), 3, meanType);
+meandata.totalint.perc75range = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.totalint.perc75 = meandata.totalint.median + meandata.totalint.perc75range;
 
 % min percentile
 temp = sub_extract(data, 'totalint', 'median') - sub_extract(data, 'totalint', 'percmin');
-meandata.totalint.percminrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.totalint.percminrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.totalint.percmin = meandata.totalint.median - meandata.totalint.percminrange;
 
 % max percentile
 temp = sub_extract(data, 'totalint', 'percmax') - sub_extract(data, 'totalint', 'median');
-meandata.totalint.percmaxrange = sub_average(temp(:, :, sel), 3, meanType);
+meandata.totalint.percmaxrange = sub_average(temp(:, :, sel), 3, datasetMeanType);
 meandata.totalint.percmax = meandata.totalint.median + meandata.totalint.percmaxrange;
 % 
 % % histograms
-meandata.int.totalhist = sub_mean(data(sel), 'totalint', 'hist', meanType); %% FIXME: This has to take into account BINS!
+meandata.int.totalhist = sub_mean(data(sel), 'totalint', 'hist', datasetMeanType); %% FIXME: This has to take into account BINS!
 
 if ~intOnly
     %% Calculate means for spatial descriptors
