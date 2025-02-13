@@ -13,35 +13,54 @@ classdef DotEnv
     %%%%%%%%%%%%%%%%%
 
     methods
-        function obj = DotEnv(envFolder, envFilename)
+        function obj = DotEnv(Env, EnvDef)
             % DotEnv reads and handles .env files in the format used by ScienceDjinn's programs (e.g. elf, cocpit)
-            % obj = DotEnv(envFolder, envFilename)
+            % obj = DotEnv(Env, EnvDef)
             %
             % Inputs:
             %   envFolder - relative or absolute path to the environment file folder (default: current working directory)
             %   envFileName - filename (without extension) to read. '.env'-extension is automatically added (default: '')
             %
-            % Examples: 
-            %   e = DotEnv(fullfile(rootFolder, 'config'), '') loads '.env' from /rootfolder/config
-            %   e = DotEnv('', 'devices') loads 'devices.env' from the current working directory
-            
+            % See also: DotEnv.fromFiles, DotEnv.combineDotEnvs
 
-            if nargin<2, envFilename = ''; end
+            obj.Env = Env;
+            obj.EnvDef = EnvDef;
+        end
+    end
+
+    methods(Static)
+        function obj = fromFiles(envFolder, envFilename, defFolder, defFilename)
+            % DotEnv.fromFiles creates a DotEnv object by reading from a .env file (and a default.env file)
+            % obj = DotEnv.fromFiles(envFolder, envFilename, defFolder, defFilename)
+            %
+            % Inputs:
+            %   envFolder - relative or absolute path to the environment file folder (default: current working directory)
+            %   envFilename - filename (without extension) to read. '.env'-extension is automatically added (default: '')
+            %   defFolder - relative or absolute path to the default environment file folder (default: 'defaults')
+            %   defFilename - default filename (without extension) to read. '.env'-extension is automatically added (default: '_defaults')
+            %
+            % Examples: 
+            %   e = DotEnv.fromFiles(fullfile(rootFolder, 'config'), '') loads '.env' from /rootfolder/config
+            %   e = DotEnv.fromFiles('', 'devices') loads 'devices.env' from the current working directory
+            
             if nargin<1, envFolder = pwd; end
+            if nargin<2, envFilename = ''; end
+            if nargin<3, defFolder = fullfile(envFolder, 'defaults'); end
+            if nargin<4, defFilename = [envFilename '_defaults']; end
 
             envFullFilename = fullfile(envFolder, [envFilename '.env']);
-            defFullFilename = fullfile(envFolder, 'defaults', [envFilename '_defaults.env']);
+            defFullFilename = fullfile(defFolder, [defFilename '.env']);
 
             % load _example.env file
             if isfile(defFullFilename)
-                obj.EnvDef = DotEnv.parseFile(defFullFilename);
+                EnvDef = DotEnv.parseFile(defFullFilename);
             else
                 error('.env example file was not found in expected path: %s', defFullFilename);
             end
 
             % load .env file
             if isfile(envFullFilename)
-                obj.Env = DotEnv.parseFile(envFullFilename);
+                Env = DotEnv.parseFile(envFullFilename);
             else
                 % if the env file does not exist, copy the example file
                 [status, msg] = copyfile(defFullFilename, envFullFilename);
@@ -51,11 +70,26 @@ classdef DotEnv
                 else
                     fprintf('.env file was not found in expected path. Example was used and copied.\n')
                 end
-                obj.Env = DotEnv.parseFile(envFullFilename);
+                Env = DotEnv.parseFile(envFullFilename);
             end
 
             % Check whether any fields are missing. If so, just copy them from the example file
-            obj.Env = compStruct(obj.Env, obj.EnvDef);
+            Env = compStruct(Env, EnvDef);
+
+            obj = DotEnv(Env, EnvDef);
+        end
+
+        function obj = combineDotEnvs(dotEnvs)
+            % DotEnv.combineDotEnvs combines several DotEnvs by combining their Env and DefEnv fields
+            %   If a field is present in more than one DotEnv object, earlier object is prioritised.
+
+            Env = [];
+            EnvDef = [];
+            for i = 1:length(dotEnvs)
+                Env = compStruct(Env, dotEnvs{i}.Env, '', false);
+                EnvDef = compStruct(EnvDef, dotEnvs{i}.EnvDef, '', false);
+            end
+            obj = DotEnv(Env, EnvDef);
         end
     end
 

@@ -1,4 +1,4 @@
-function para = elf_para(rootdir, dataset, imgformat, verbose)
+function para = elf_para(desiredModules, rootdir, dataset, imgformat, verbose)
 % ELF_PARA defines some of the basic anlysis parameters for ELF
 % 
 %
@@ -8,10 +8,11 @@ function para = elf_para(rootdir, dataset, imgformat, verbose)
 % rootdir = 'prompt' means prompt for root dir but use saved output folders
 
 %% defaults
-if nargin < 4, verbose = false; end
-if nargin < 3, imgformat = ""; end
-if nargin < 2, dataset = ''; end
-if nargin < 1, rootdir = ''; end
+if nargin < 5, verbose = false; end
+if nargin < 4, imgformat = ""; end
+if nargin < 3, dataset = ''; end
+if nargin < 2, rootdir = ''; end
+if nargin < 1, desiredModules = {}; end
 
 %% find root folder
 mayusegpu = false; % this flag can be used to manually (de-)activate use of GPU computing
@@ -54,24 +55,24 @@ if ~isempty(dataset)
     para                    = elf_io_readwrite(para, 'createfilenames');
 end
 
-
-%% gui parameters
-para.gui.pnum_cols = 8; % 8 tiles horizontally
-para.gui.pnum_rows = 6; % 6 tiles vertically
-para.gui.smallsize = 200; % size of small preview images in ELF gui
-
 %% load .env files
 if strcmp(rootdir, 'noenv')
     return
 end
 
-para.ana  = elf_analysisPara; % analysis parameters (all ELF analysis has to be rerun if these are changed)
-para.plot = elf_plottingPara; % plotting parameters (will be loaded again at plotting time)
+%% Check whether all modules and dependencies are installed, and load their .env files
+[para.modules, para.ana, para.plot] = elf_modules_addWithDependencies(desiredModules);
 
 %% projection constants (don't change)
 para.azi                    = [para.ana.targetAziRange(1), .1/para.ana.resolutionBooster, para.ana.targetAziRange(2)];          % regular elevation sampling for equirectangular projection
 para.ele                    = [para.ana.targetEleRange(1), .1/para.ana.resolutionBooster, para.ana.targetEleRange(2)];          % regular azimuth sampling for equirectangular projection
 para.ele2                   = [para.ana.targetEleRange(2), -.1/para.ana.resolutionBooster, para.ana.targetEleRange(1)];
+
+%% main ELF gui parameters
+%% TODO: Could be moved to core .env file
+para.gui.pnum_cols = 8; % 8 tiles horizontally
+para.gui.pnum_rows = 6; % 6 tiles vertically
+para.gui.smallsize = 200; % size of small preview images in ELF gui
 
 %% spatial analysis constants
 %% TODO: Move to .env when spatial module is overhauled

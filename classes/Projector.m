@@ -11,7 +11,7 @@ classdef Projector
         ErAzi                 % azimuth vector (as [start step end]) for the equirectangular projection; e.g. -90:0.1:90
         ErEle                 % elevation vector (as [start step end]) for the equirectangular projection; e.g. 90:-0.1:-90
         MidPoint              % image centre in h/w
-        PixPerMM              % pixel density  (assumed to be equal in both dimensions) of the chip
+        PixPerMM              % pixel density (assumed to be equal in both dimensions) of the chip
         CorrFocalLength       % the "effective" focal length (real focal length * a correction factor to match the observed image circle)
     end
 
@@ -114,7 +114,7 @@ classdef Projector
             imSize = [d_pix, d_pix, oldProj.Size(3)];
             midPoint = [(imSize(1)+1)/2; (imSize(2)+1)/2];
            
-            obj = Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength);            
+            obj = Projector(imSize, projectionType, erAzi, erEle, midPoint, pixPerMM, corrFocalLength);
         end
     end
 
@@ -248,7 +248,7 @@ classdef Projector
             % TODO: Docs
             if nargin<5 || isempty(rotation), rotation=0; end
             [X, Y, Z]    = obj.pix2cart(w, h, rotation);
-            [w2, h2]     = targetProjector.cart2pix(X, Y, Z);            
+            [w2, h2]     = targetProjector.cart2pix(X, Y, Z);
         end
 
         function grids = getProjectionInfo(obj, rotation)
@@ -306,7 +306,7 @@ classdef Projector
             ele = obj.ErEle(1):obj.ErEle(2):obj.ErEle(3);
 
             Logger.log(LogLevel.INFO, '\tCalculating projection constants...\n');
-            [azi_grid, ele_grid] = meshgrid(azi, ele);                    % grid of desired angles
+            [azi_grid, ele_grid] = meshgrid(azi, ele);   % grid of desired angles
             [w_im, h_im]         = obj.rect2pix(azi_grid, ele_grid, rotation);
             projection_ind       = obj.sub2ind(obj.Size, w_im, h_im);
             Logger.log(LogLevel.INFO, '\bdone.\n');
@@ -335,7 +335,7 @@ classdef Projector
 
             newProjector = Projector.fromImageCircle(obj, maxRadius_deg);
 
-            [w_grid, h_grid]   = meshgrid(1:newProjector.Size(2), 1:newProjector.Size(1));          % grid of desired output image coordinates
+            [w_grid, h_grid]   = meshgrid(1:newProjector.Size(2), 1:newProjector.Size(1)); % grid of desired output image coordinates
             [w2_grid, h2_grid] = newProjector.pix2pix(obj, w_grid, h_grid);
             sel                = w2_grid>obj.Size(2) | w2_grid<1 | h2_grid>obj.Size(1) | h2_grid<1;
             w2_grid(sel)       = NaN; 
@@ -354,8 +354,8 @@ classdef Projector
             ele = obj.ErEle(1):obj.ErEle(2):obj.ErEle(3);
             
             %% Calculate main projections   
-            Logger.log(LogLevel.INFO, '\tCalculating projection constants...\n');     
-            [w_grid, h_grid]         = meshgrid(1:obj.Size(2), 1:obj.Size(1));          % grid of desired output image coordinates
+            Logger.log(LogLevel.INFO, '\tCalculating projection constants...\n'); 
+            [w_grid, h_grid]         = meshgrid(1:obj.Size(2), 1:obj.Size(1)); % grid of desired output image coordinates
             [target_azi, target_ele] = obj.pix2rect(w_grid, h_grid, rotation);
             % calculate azi/ele index vectors
             azi_ind                  = (target_azi - azi(1)) / obj.ErAzi(2) + 1;
@@ -389,7 +389,7 @@ classdef Projector
 
             switch method
                 case {'interpolate', 'interp', 'default'}
-                    [azi_grid, ele_grid]    = meshgrid(azi, ele);                                   % grid of desired angles
+                    [azi_grid, ele_grid]    = meshgrid(azi, ele);  % grid of desired angles
                     [w_im, h_im]            = obj.rect2pix(azi_grid, ele_grid, -rotation);
                     [w_grid, h_grid]        = meshgrid(1:obj.Size(2), 1:obj.Size(1));   % grid of desired output pixels
 
@@ -498,7 +498,7 @@ classdef Projector
             ind1(sel) = 1;
             ind2(sel) = 1;
             
-            ind       = sub2ind(imsize, ind1, ind2, ind3);    % transform into linear indexes
+            ind       = sub2ind(imsize, ind1, ind2, ind3);  % transform into linear indexes
 
             ind(sel)  = NaN;
         end
@@ -518,7 +518,7 @@ classdef Projector
             ind1(ind1<1) = NaN;
             ind2(ind2<1) = NaN;
             
-            ind     = sub2ind(imsize, ind1, ind2, ind3, ind4);    % transform into linear indexes
+            ind     = sub2ind(imsize, ind1, ind2, ind3, ind4);  % transform into linear indexes
         end
     end
 end

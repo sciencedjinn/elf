@@ -195,7 +195,7 @@ classdef Calibrator
                 case {'nikon d800e', 'nikon d810', 'nikon z 6'}
                     
                     % 1. ISO/EXP/APT 2016 calibration
-                    para    = elf_para("noenv");
+                    para    = elf_para({}, "noenv");
                     TEMP    = load(fullfile(para.paths.calibfolder, 'nikon d810', 'absolute.mat'));
                     obj.AbsoluteFactor = TEMP.wlcf;
                     
@@ -205,7 +205,7 @@ classdef Calibrator
                 case 'nikon d850'
         
                     % 1. ISO/EXP/APT calibration
-                    para    = elf_para("noenv");
+                    para    = elf_para({}, "noenv");
                     TEMP    = load(fullfile(para.paths.calibfolder, obj.CameraString, 'absolute.mat'));
                     obj.Acf = TEMP.acf;
                     obj.AbsoluteFactor = TEMP.wlcf;

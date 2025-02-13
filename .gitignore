@@ -3,7 +3,8 @@
 *.out
 # Ignore the pre-calculated contrast index matrices
 CIM
-modules
+modules/*/
+!modules/core/
 *.asv
 obs
 beta

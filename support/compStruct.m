@@ -18,6 +18,11 @@ if isstruct(s) && isstruct(d)
             if verbose, disp(['Inserting missing or empty field ' n '.' df{i}]); end
         end
     end
+elseif isstruct(s) && isempty(d)
+    return
+elseif isempty(s) && isstruct(d)
+    s = d;
+    if verbose, disp(['Inserting structure for empty field ' n]); end
 elseif isstruct(s) || isstruct(d)
     error(['Internal error: Field ' n 'exists in both variables, but is not a structure in one of them']);
 else

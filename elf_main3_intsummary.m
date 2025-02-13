@@ -22,7 +22,7 @@ if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset na
 
 %% Set up paths and file names; read info, infosum and para
 elf_paths;
-para            = elf_para('', dataSet, imgFormat);
+para            = elf_para({}, '', dataSet, imgFormat);
 para            = elf_para_update(para);                                                               % Combine old parameter file with potentially changed information in current elf_para
 info            = elf_info_collect(fullfile(para.paths.datapath, para.paths.scenefolder), '*.tif');    % this contains tif exif information and filenames %%FIXME should be mat folder
 infoSum         = elf_io_readwrite(para, 'loadinfosum');                                               % loads the old infosum file (which contains projection information)

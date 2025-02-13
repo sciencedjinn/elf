@@ -1,7 +1,4 @@
-function plotP = elf_plottingPara()
-
-envPath = fullfile(fileparts(mfilename("fullpath")), '..', 'config');
-d = DotEnv(envPath, '');
+function plotP = core_plottingPara(d)
 
 plotParameters = ...
     {'RED_CHANNEL_COLOUR',   'doublevector';

@@ -26,7 +26,7 @@ if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset na
                     Logger.log(LogLevel.INFO, '----- ELF Step 1: Calibration, HDR and Intensity -----\n')
 
 %% Set up paths and file names; read info, infosum and para, calculate sets
-para            = elf_para('', dataSet, imgFormat, verbose);
+para            = elf_para({}, '', dataSet, imgFormat, verbose);
 info            = elf_info_collect(para.paths.datapath, imgFormat);   % this contains EXIF information and filenames, verbose==1 means there will be output during system check
 infoSum         = elf_info_summarise(info, false);                    % summarise EXIF information for this dataset. This will be saved for later use below
 infoSum.linims  = strcmp(imgFormat, "*.dng");                         % if linear images are used, correct for that during plotting
@@ -42,7 +42,7 @@ para.saveSceneTifs = false;
 
 %% Calculate black levels for all images (from calibration or dark images)
 [info, ~, infoSum.blackWarnings] = Calibrator.calculateBlackLevels(info, imgFormat);
-cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourcalibtype);
+cal = Calibrator(infoSum.Model{1}, [infoSum.Width infoSum.Height], para.ana.colourCalibType);
 proj = Projector.fromInfoStructs(infoSum, cal.ProjectionInfo, para.azi, para.ele2);
 
 %% Set up projection constants
@@ -92,7 +92,7 @@ for iSet = 1:size(sets, 1)
             im_proj(:, :, :, i) = im_cal;
             conf_proj(:, :, :, i) = conf;
         end
-        %         im_proj_cal(:, :, :, i) = cal.applySpectral(im_proj(:, :, :, i), info(imnr), para.ana.colourcalibtype); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
+        %         im_proj_cal(:, :, :, i) = cal.applySpectral(im_proj(:, :, :, i), info(imnr), para.ana.colourCalibType); % only needed for 'histcomb'-type intensity calculation, but not time-intensive
 
     end
     
@@ -109,7 +109,7 @@ for iSet = 1:size(sets, 1)
     
     % Pass a figure number and an outputfilename here only if you want diagnostic pdfs.
     % However, MATLAB can't currently deal with saving these large figures, so no pdf will be created either way.
-    im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrmethod, rawWhiteLevels); % para.ana.hdrmethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrmethod    
+    im_HDR      = elf_hdr_calcHDR(im_proj, conf_proj, para.ana.hdrMethod, rawWhiteLevels); % para.ana.hdrMethod can be 'overwrite', 'overwrite2', 'validranges', 'allvalid', 'allvalid2' (default), 'noise', para.ana.hdrMethod    
     im_HDR_cal  = cal.applySpectral(im_HDR, info(setStart)); % apply spectral calibration
     I           = elf_io_correctdng(im_HDR_cal, info(setStart), 'bright');
 
@@ -125,14 +125,14 @@ for iSet = 1:size(sets, 1)
     %% Intensity descriptors %%
     if para.stages.calculateInt
         %% Calculate intensity descriptors
-        switch para.ana.intanalysistype
+        switch para.ana.intAnalysisType
             case 'histcomb' % Calculate histograms for each exposure and combine using conf
                 error('Currently not supported!')
-    %             [res.int, res.totalint] = elf_analysis_int(im_proj_cal, para.ele2, 'histcomb', para.ana.hdivn_int, para.ana.rangeperc, setnr==1, conf_proj, confFactors); % verbose output (analysis parameters) only for the first set
+    %             [res.int, res.totalint] = elf_analysis_int(im_proj_cal, para.ele2, 'histcomb', para.ana.hdivnInt, para.ana.rangePerc, setnr==1, conf_proj, confFactors); % verbose output (analysis parameters) only for the first set
             case 'hdr' % Calculate histograms from HDR image (current default in para)
-                [res.int, res.totalint] = elf_analysis_int(im_HDR_cal, para.ele2(1):para.ele2(2):para.ele2(3), 'hdr', para.ana.hdivn_int, para.ana.rangeperc, iSet==1); % verbose output (analysis parameters) only for the first set
+                [res.int, res.totalint] = elf_analysis_int(im_HDR_cal, para.ele2(1):para.ele2(2):para.ele2(3), 'hdr', para.ana.hdivnInt, para.ana.rangePerc, iSet==1); % verbose output (analysis parameters) only for the first set
             otherwise
-                error('Unknown intensity calculation method: %s', para.ana.intanalysistype);
+                error('Unknown intensity calculation method: %s', para.ana.intAnalysisType);
         end
     
         %% Plot summary figure for this scene

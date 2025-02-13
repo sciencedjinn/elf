@@ -8,7 +8,7 @@ function calc_wholefolder(rootFolder)
 % At the end of the run, a summary will be printed to the command line specifying any errors.
 
 if nargin < 1, rootFolder = 'prompt'; end
-para             = elf_para(rootFolder, '', '', true);    
+para             = elf_para({}, rootFolder, '', '', true);    
 [~, ~, datasets] = elf_checkdata(para);
 res              = zeros(length(datasets), 1);
 errors           = cell(length(datasets), 1);

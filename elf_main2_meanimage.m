@@ -23,7 +23,7 @@ if nargin < 1 || isempty(dataSet), error('You have to provide a valid dataset na
 
 %% Set up paths and file names; read info, infosum and para
 elf_paths;
-para            = elf_para('', dataSet);                   % This function only uses para.paths, so we don't have to load the old para file, verbose==1 means there will be output during system check
+para            = elf_para({}, '', dataSet);                   % This function only uses para.paths, so we don't have to load the old para file, verbose==1 means there will be output during system check
 allFiles        = elf_io_dir(fullfile(para.paths.datapath, para.paths.scenefolder, '*.tif'));
 fNames_im       = {allFiles.name};                          % collect image names
 infoSum         = elf_io_readwrite(para, 'loadinfosum');      % loads the old infosum file (which contains projection information, and linims)

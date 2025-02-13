@@ -1,4 +1,4 @@
-function [para, status, gui] = elf_startup(cbhandle, rootfolder, verbose, useoldfolder)
+function [para, status, gui] = elf_startup(modules, cbhandle, rootfolder, verbose, useoldfolder)
 
 %% defaults
 if nargin < 4 || isempty(useoldfolder), useoldfolder = true; end
@@ -7,9 +7,9 @@ if nargin < 2 || isempty(rootfolder), rootfolder = ''; end
 
 %% get basic parameters
 if useoldfolder
-    para = elf_para(rootfolder, '', '', true); % without arguments, just returns basic parameters (call again later with rootfolder or dataset)
+    para = elf_para(modules, rootfolder, '', '', true); % without arguments, just returns basic parameters (call again later with rootfolder or dataset)
 else
-    para = elf_para(NaN, '', '', true); % without arguments, just returns basic parameters (call again later with rootfolder or dataset)
+    para = elf_para(modules, NaN, '', '', true); % without arguments, just returns basic parameters (call again later with rootfolder or dataset)
 end
 
 %% collect and check all datasets parameters
@@ -20,7 +20,7 @@ gui = elf_maingui(status, para, datasets, exts, cbhandle);
 
 %% insert images
 for i = 1:size(status, 1)
-    para2 = elf_para(para.paths.root, datasets{i});
+    para2 = elf_para(modules, para.paths.root, datasets{i});
     if status(i, 3)
         fname   = para2.paths.fname_meanimg_jpg;
         info    = [];

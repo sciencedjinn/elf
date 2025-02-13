@@ -1,10 +1,7 @@
-function anaP = elf_analysisPara()
-
-envPath = fullfile(fileparts(mfilename("fullpath")), '..', 'config');
-d       = DotEnv(envPath, '');
+function anaP = core_analysisPara(d)
 
 anaParameters = ...
-    {'RESOLUTION_BOOSTER',   'double';
+    {'RESOLUTION_BOOSTER', 'double';
      'TARGET_PROJECTION', 'string';
      'TARGET_AZI_RANGE', 'doublevector';
      'TARGET_ELE_RANGE', 'doublevector';
