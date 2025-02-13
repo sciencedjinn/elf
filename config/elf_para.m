@@ -69,41 +69,19 @@ para.ana  = elf_analysisPara; % analysis parameters (all ELF analysis has to be 
 para.plot = elf_plottingPara; % plotting parameters (will be loaded again at plotting time)
 
 %% projection constants (don't change)
-para.azi                    = [-90, .1/para.ana.resolutionBooster, 90];          % regular elevation sampling for equirectangular projection
-para.ele                    = [-90, .1/para.ana.resolutionBooster, 90];          % regular azimuth sampling for equirectangular projection
-para.ele2                   = [90, -.1/para.ana.resolutionBooster, -90];
-para.projtype               = 'equisolid';        % if this is 'noproj', no projection will be calculated (original images should be 1801x1801)
+para.azi                    = [para.ana.targetAziRange(1), .1/para.ana.resolutionBooster, para.ana.targetAziRange(2)];          % regular elevation sampling for equirectangular projection
+para.ele                    = [para.ana.targetEleRange(1), .1/para.ana.resolutionBooster, para.ana.targetEleRange(2)];          % regular azimuth sampling for equirectangular projection
+para.ele2                   = [para.ana.targetEleRange(2), -.1/para.ana.resolutionBooster, para.ana.targetEleRange(1)];
 
-%% analysis constants
-%% TODO: Move to .env
+%% spatial analysis constants
+%% TODO: Move to .env when spatial module is overhauled
 para.ana.scales_deg         = [1 10];   % half-width (FWHM) of receptors in degrees (sigma of Gaussian)
 para.ana.filterazimin       = -90;
 para.ana.filterazimax       = 90;
 para.ana.filterelemin       = -90; 
 para.ana.filterelemax       = 90;
 
-para.ana.hdivn_int          = 60;       % how many regions to divide elevation into for intensity slices
-para.ana.rangeperc          = 95;       % What percentage of the data should be between displayed min and max intensity? (default: 95)
-
 para.ana.spatialbins        = [-90 -10 10 90];%[-90 -50 -10 10 50 90]; % define the boundaries of bins for spatial/contrast analysis
 para.ana.spatialmeantype    = 'rms';    % can be 'mean'/'rms'/'perc'; if this is changed, step 3 and 4 have to be recalculated
 para.ana.spatialmeanthr     = 0;        % contrast threshold in percent; only contrasts >= this value will be included in the mean
-
-para.ana.colourcalibtype    = 'col';    % 'colmat'   - Full deconvolution of channels to reconstruct a spectrum that is flat between 400-500, 500-600 and 600-700 nm
-                                        % 'col'      - Scale individual channels so each one represents the weighted average spectral photon radiance
-                                        %              over that pixels sensitivity
-                                        % 'wb'       - Scale individual channels using the camera's "as shot" white balance, scaled to the mean
-                                        %              spectral photon radiance (averaged over all channels)
-para.ana.intanalysistype    = 'hdr';    % 'histcomb' - Calculate individual histograms for each exposure, and combine them using valid raw count ranges.
-                                        %              This method has the problem that some pixels might contribute more than once, while others never contribute.
-                                        % 'hdr'      - Calculate histograms from the HDR image.
-para.ana.hdrmethod          = 'allvalid2';         %'overwrite2', 'allvalid2', 'noise'                               
-
-
-
-
-
-
-
-
 

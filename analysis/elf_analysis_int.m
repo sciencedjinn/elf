@@ -1,6 +1,6 @@
 function [res, totalres] = elf_analysis_int(im, ele, type, hdivn, perc, verbose)
 % ELF_ANALYSIS_INT calculates intensity descriptors in a calibrated image stack.
-%   Type can be read from para.ana.intanalysistype
+%   Type can be read from para.ana.intAnalysisType
 %   Statistics are calculated both on the whole image and on a strip-by-strip basis, and are given for each individual channel as well as for total
 %   "white" intensity. This is currently calculated as the mean of the red, blue, and green channel.
 %

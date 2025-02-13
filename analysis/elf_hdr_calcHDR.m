@@ -1,12 +1,12 @@
-function im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, rawWhiteLevels)
+function im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrMethod, rawWhiteLevels)
 % ELF_HDR_CALCHDR calculates an HDR image from a stack of calibrated images.
 %
-%   im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrmethod, confsat)
+%   im_HDR = elf_hdr_calcHDR(im_cal, conf, hdrMethod, confsat)
 %
 % Inputs:
 %   im_cal    - N x M x C x I double, calibrated image stack
 %   conf      - N x M x C x I double, raw (dark-corrected) image stack, used for confidence/saturation calculation
-%   hdrmethod - 'overwrite'/'overwrite2'/'validranges'/'allvalid'/'allvalid2'(current default)/'noise', see below for details of methods
+%   hdrMethod - 'overwrite'/'overwrite2'/'validranges'/'allvalid'/'allvalid2'(current default)/'noise', see below for details of methods
 %   rawWhiteLevels   - C x I double, the saturation values for each channel/image, obtained from elf_calib_abssens
 %
 % Outputs:
@@ -18,7 +18,7 @@ if size(im_cal, 4) == 1
     return;
 end
 
-switch hdrmethod
+switch hdrMethod
     case 'overwrite'
         %% Starting with the lowest exposure, overwrite all pixels that are not saturated
         im_HDR = cell(size(im_cal, 3), 1);
@@ -103,7 +103,7 @@ switch hdrmethod
         im_HDR      = nansum(im_cal .* HDRweights, 4) ./ nansum(HDRweights, 4);
 
     otherwise
-        error('Internal error: Unknown HDR method: %s', hdrmethod);
+        error('Internal error: Unknown HDR method: %s', hdrMethod);
 end
 
 

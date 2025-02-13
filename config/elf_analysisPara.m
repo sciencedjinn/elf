@@ -5,7 +5,14 @@ d       = DotEnv(envPath, '');
 
 anaParameters = ...
     {'RESOLUTION_BOOSTER',   'double';
-     'TARGET_PROJECTION', 'string';};
+     'TARGET_PROJECTION', 'string';
+     'TARGET_AZI_RANGE', 'doublevector';
+     'TARGET_ELE_RANGE', 'doublevector';
+     'HDIVN_INT', 'double';
+     'RANGE_PERC', 'double';
+     'COLOUR_CALIB_TYPE', 'string';
+     'INT_ANALYSIS_TYPE', 'string';
+     'HDR_METHOD', 'string';};
 
 anaP = d.extractValues('ANALYSIS', anaParameters);
 anaP.version = str2double(d.Env.VERSION);
