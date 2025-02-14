@@ -129,7 +129,7 @@ for iSet = 1:size(sets, 1)
     end
 
     %% Intensity descriptors %%
-    if para.stages.calculateInt
+    if para.stages.calculateInt  %% TODO: Move this into a "per_scene" function for the CORE module
         %% Calculate intensity descriptors
         switch para.ana.intAnalysisType
             case 'histcomb' % Calculate histograms for each exposure and combine using conf

@@ -163,7 +163,7 @@ classdef Projector
     % w, h     - x/y image coordinatesin pixels, e.g. defining the desired grid of a projected image along image width and height, respectively
     % X, Y, Z  - cartesian coordinates in arbitrary units, e.g. on a unit sphere surrounding the camera
     % azi, ele - azimuth/elevation in degrees
-    % rotation - angle (in degrees) by which the image should be rotated clockwise before processing (Use 90 or -90 for portrait images)
+    % rotation - angle (in degrees) by which the image should be rotated clockwise around the optical axis before processing (Use 90 or -90 for portrait images)
     
     methods
         function [X, Y, Z] = pix2cart(obj, w, h, rotation)
@@ -173,15 +173,17 @@ classdef Projector
             % [w_grid, h_grid] = meshgrid(1:I_info.Width, 1:I_info.Height);
             % [X, Y, Z] = obj.pix2cart(w_grid, h_grid)
 
+            %% TODO: ADD a vector for the optical axis (and one for orientation?)
+
             if nargin<4 || isempty(rotation), rotation=0; end
 
             h_rel = h-obj.MidPoint(1);
             w_rel = w-obj.MidPoint(2);
             R_pix = sqrt(h_rel.^2 + w_rel.^2); % each point's radial excentricity on the sensor (in pixels)
             R_mm  = R_pix / obj.PixPerMM;      % each point's radial excentricity on the sensor (in mm)
-            gamma = atan2d(h_rel, w_rel) - rotation;
+            gamma = atan2d(h_rel, w_rel) - rotation; % angle around the optical axis
 
-            theta_deg = obj.r2theta(R_mm);
+            theta_deg = obj.r2theta(R_mm);           % angle to the optical axis
 
             r_yz = sind(theta_deg);
             
@@ -219,7 +221,7 @@ classdef Projector
         end
 
         function [azi, ele] = pix2rect(obj, w, h, rotation)
-            % PIX2RECT translates w/h pixel positions in the image into azimuth/elevation
+            % PIX2RECT translates w/h pixel positions in the fisheye image into azimuth/elevation
             %
             % Usage example:
             % [w_grid, h_grid]  = meshgrid(1:I_info.Width, 1:I_info.Height);
@@ -233,7 +235,7 @@ classdef Projector
         end
 
         function [w, h] = rect2pix(obj, azi, ele, rotation)
-            % RECT2PIX translates azimuth/elevation into w/h pixel positions
+            % RECT2PIX translates azimuth/elevation into w/h fisheye pixel positions
             %
             % Usage example:
             % [azi_grid, ele_grid] = meshgrid(-90:0.1:90, 90:-0.1:-90);
