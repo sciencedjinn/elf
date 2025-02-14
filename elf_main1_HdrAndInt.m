@@ -81,6 +81,12 @@ for iSet = 1:size(sets, 1)
         fName                   = info(imNo).Filename;  % full path to input image file
         im_raw                  = double(elf_io_imread(fName)); % load the image (uint16) and transform to double
 
+        %% TODO: Black out horizon if needed
+        if isfield(para.ana, "blackoutRadius")
+            im_raw = Projector.blackout(im_raw, para.ana.blackoutRadius);
+        end
+        %% %%%%%%%%%
+ 
         % Calibrate and calculate intensity confidence
         [im_cal, conf, rawWhiteLevels(:, i)] = cal.applyAbsolute(im_raw, info(imNo));
         
