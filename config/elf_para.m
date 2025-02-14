@@ -6,6 +6,7 @@ function para = elf_para(desiredModules, rootdir, dataset, imgformat, verbose)
 % rootdir = NaN or rootdir = 'reset' means reset all local folders; rootdir = 'noenv' means just return the default parameters, don't read .env file
 % empty rootdir means load all saved folders
 % rootdir = 'prompt' means prompt for root dir but use saved output folders
+% desiredModules can be the name of a single module (e.g. "filter") or a cell array of module names
 
 %% defaults
 if nargin < 5, verbose = false; end
@@ -13,6 +14,7 @@ if nargin < 4, imgformat = ""; end
 if nargin < 3, dataset = ''; end
 if nargin < 2, rootdir = ''; end
 if nargin < 1, desiredModules = {}; end
+if ~iscell(desiredModules), desiredModules = {desiredModules}; end
 
 %% find root folder
 mayusegpu = false; % this flag can be used to manually (de-)activate use of GPU computing
