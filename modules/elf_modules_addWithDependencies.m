@@ -74,7 +74,11 @@ function d = loadDotEnv(modName)
     envPath     = fullfile(fileparts(mfilename("fullpath")), '..', 'config');
     defFilename = [modName '_defaults'];
     defPath     = fullfile(fileparts(mfilename("fullpath")), modName);
-    d = DotEnv.fromFiles(envPath, envFilename, defPath, defFilename);
+    try
+        d = DotEnv.fromFiles(envPath, envFilename, defPath, defFilename);
+    catch me
+        error("Module ""%s"" could not be found or is corrupted (%s)", modName, me.message);
+    end
 end
 
 function [anaP, plotP] = evaluateEnv(anaP, plotP, modName, d)
