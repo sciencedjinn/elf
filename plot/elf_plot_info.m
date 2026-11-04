@@ -1,7 +1,6 @@
 function elf_plot_info(h, infoSum, name, nScenes, p)
     % plots the info fields in the ELF main plot
 
-    elfText   = {'\makebox[4in][c]{\fontsize{60}{40}\textbf{E}\fontsize{15}{40}\textbf{nvironmental} \fontsize{60}{40}\textbf{L}\fontsize{15}{40}\textbf{ight} \fontsize{60}{40}\textbf{F}\fontsize{15}{40}\textbf{ield}}'};
     nExposuresPerScene = length(infoSum.DateTimeOriginal)/nScenes;
     if isfield(infoSum, 'blackLevels')
         if ~isempty(infoSum.blackWarnings)
@@ -28,9 +27,20 @@ function elf_plot_info(h, infoSum, name, nScenes, p)
 
     % central: ELF name
     if p.infoShowElfTitle
-        text(0, 0, elfText,   stdo{:}, 'Parent', h.ahTitle, 'Interpreter', 'latex');
-        axis(h.ahTitle, [-.1 .1 -.5 .5])
-        set(h.ahTitle, 'Color', 'none')
+        if isMATLABReleaseOlderThan("R2025a")
+            % in Matlab versions up to 2024b, we can use Latex to format the figure text
+            elfText   = {'\makebox[4in][c]{\fontsize{60}{40}\textbf{E}\fontsize{15}{40}\textbf{nvironmental} \fontsize{60}{40}\textbf{L}\fontsize{15}{40}\textbf{ight} \fontsize{60}{40}\textbf{F}\fontsize{15}{40}\textbf{ield}}'};
+            text(0, 0, elfText,   stdo{:}, 'Parent', h.ahTitle, 'Interpreter', 'latex');
+            axis(h.ahTitle, [-.1 .1 -.5 .5])
+            set(h.ahTitle, 'Color', 'none')
+        else
+            % in Matlab 2025a and later, functionality has been severely reduced and we have to use an image instead
+            elfText = imread("static\ELF figure title.tif");
+            imagesc(h.ahTitle, elfText)
+            colormap(h.ahTitle, "gray")
+            axis(h.ahTitle, 'image')
+            axis(h.ahTitle, 'off')
+        end
     end
     axis(h.ahTitle, 'off')
 
