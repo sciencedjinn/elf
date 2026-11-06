@@ -1,4 +1,4 @@
-function elf_maingui_visibility(gui, status)
+function elf_maingui_visibility(gui, para, status)
 
 col = {'r', [0 .5 0], [1 .6 0], 'g', [1 .6 0]};    % colors indicating analysis progress
 tooltips = {{'No images were found in this folder.', ...
@@ -23,13 +23,24 @@ tooltips = {{'No images were found in this folder.', ...
     ''}};
 
 % set button colours
-for i = 1:size(status, 1)
-    set(gui.p(i).dng, 'backgroundcolor', col{status(i, 1)+1}, 'tooltip', tooltips{1}{status(i, 1)+1});
-    set(gui.p(i).scenes, 'backgroundcolor', col{status(i, 2)+1}, 'tooltip', tooltips{2}{status(i, 2)+1});
-    % set(gui.p(i).b3, 'backgroundcolor', col{status(i, 3)+1}, 'tooltip', tooltips{3}{status(i, 3)+1});
+for i = 1:size(status.Colour, 1)
+    set(gui.p(i).dng, 'backgroundcolor', status.Colour(i, 1).RGB, 'tooltip', status.Text{i, 1});
+    set(gui.p(i).scenes, 'backgroundcolor', status.Colour(i, 2).RGB, 'tooltip', status.Text{i, 2});
+
+    for modNum = length(para.modules):-1:1
+        modName = para.modules{modNum};
+        if para.ana.(modName).needsToRunPerEnvironment
+            statusPos = 3+length(para.modules)-modNum; % the y-position of this module in the status arrays
+            set(gui.p(i).modButtons(modNum), 'backgroundcolor', status.Colour(i, statusPos).RGB, 'tooltip', status.Text{i, statusPos});
+        end
+    end
+
+
     
-    if status(i, 2), en = 'on'; else, en = 'off'; end % only enable exp button if scenes have been calculated
+    if status.Colour(i, 2)==StatusColour.Good, en = 'on'; else, en = 'off'; end % only enable exp button if scenes have been calculated
     set(gui.p(i).exp, 'enable', en);
-    if status(i, 4), en = 'on'; else, en = 'off'; end % only enable show button if summary has been calculated
-    set(gui.p(i).show, 'enable', en);
+
+    % TODO: Reenable this
+    % if status.Colour(i, 4)==StatusColour.Good, en = 'on'; else, en = 'off'; end % only enable show button if summary has been calculated
+    % set(gui.p(i).show, 'enable', en);
 end

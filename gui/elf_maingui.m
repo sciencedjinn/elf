@@ -8,7 +8,7 @@ pnum_cols = para.plot.guiNumCols;
 pnum_rows = para.plot.guiNumRows; 
 
 %% parameters
-numsets         = size(status, 1);         % total number of sets
+numsets         = size(status.Colour, 1);         % total number of sets
 totalrows       = ceil(numsets/pnum_cols); % total number of rows that will be needed to accommodate all datasets
 sliderwidth     = 0.01;                    % width reserved for slider
 browseheight    = 0.02;                    % height reserved for folder and browse button
@@ -60,7 +60,7 @@ for i = 1:numsets
     
     % buttons
     gui.p(i).dng    = uicontrol(stdo{:}, 'Style', 'pushbutton', 'Position', [0 .89 .2 .1], 'tag', 'maingui_dng', 'String', 'DNG');
-    gui.p(i).scenes = uicontrol(stdo{:}, 'Style', 'pushbutton', 'Position', [0 .79 .2 .1], 'tag', 'maingui_scenes', 'String', 'Scenes');
+    gui.p(i).scenes = uicontrol(stdo{:}, 'Style', 'pushbutton', 'Position', [0 .79 .2 .1], 'tag', 'maingui_scenes', 'String', 'scenes');
     validModNum = 1;
     for modNum = length(para.modules):-1:1
         modName = para.modules{modNum};
@@ -105,7 +105,7 @@ gui.menu.help.gs        = uimenu(gui.menu.help.h, 'label', 'User Manual...', 'ca
 gui.menu.help.kb        = uimenu(gui.menu.help.h, 'label', 'Known bugs...', 'callback', cbhandle, 'tag', 'help_knownbugs');
 
 %% set visibility and colours
-elf_maingui_visibility(gui, status);
+elf_maingui_visibility(gui, para, status);
 
 
 

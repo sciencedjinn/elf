@@ -286,7 +286,7 @@ classdef FileHandler < handle
         function saveCoreResults(obj, sceneName, data)
             % saves results mat for one scene; this is called during every loop iteration
                 
-            % remove large, unneccesary parts
+            % remove large, unnecessary parts
             data.int.hist = [];
             data.spatial.lumfft = [];
             data.spatial.rgfft = [];
@@ -310,7 +310,7 @@ classdef FileHandler < handle
         end
 
         function saveMeanCoreResults(obj, data)
-            % remove large, unneccesary parts
+            % remove large, unnecessary parts
             data.int.hist = [];
             data.spatial.lumfft = [];
             data.spatial.rgfft = [];
@@ -330,7 +330,7 @@ classdef FileHandler < handle
         end
 
         function saveMeanCoreIntResults(obj, data)
-            % remove large, unneccesary parts
+            % remove large, unnecessary parts
             data.int.hist = [];
             data.info.DNGPrivateData = [];
             

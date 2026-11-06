@@ -107,7 +107,7 @@ else
             % update gui visibility
             %% TODO: Would be great if the image was updated here, as well
             status = elf_checkdata(para, false);
-            elf_maingui_visibility(gui, status);
+            elf_maingui_visibility(gui, para, status);
         end
     catch me
         if strcmp(src.Type, 'uicontrol')

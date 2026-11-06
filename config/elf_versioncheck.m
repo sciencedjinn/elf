@@ -58,24 +58,25 @@ end
 if verbose
     Logger.log(LogLevel.INFO, '      You are running MATLAB version %s on a %s.\n', v.Version, compstr);
 end
-if ~isMATLABReleaseOlderThan("R2025a")
+if ~isMATLABReleaseOlderThan("R2026b")
     if verbose
-        Logger.log(LogLevel.INFO, '\n');
-        Logger.log(LogLevel.INFO, '      The Matlab graphics engine has changed significantly with version 2025a. ELF plots will not be plotted correctly and the software is likely to freeze frequently. It is STRONGLY recommended to downgrade to Matlab 2024b or older!\n');
+        Logger.log(LogLevel.INFO, '\n      MATLAB R2026b or newer detected. The Matlab graphics engine has changed significantly with version 2025a. ELF plots may be slightly different than in older versions. Please report any errors in plotting.\n');
     end
-    warndlg('The Matlab graphics engine has changed significantly with version 2025a. ELF plots will not be plotted correctly and the software is likely to freeze frequently. It is STRONGLY recommended to downgrade to Matlab 2024b or older!');
+elseif ~isMATLABReleaseOlderThan("R2025a")
+    if verbose
+        Logger.log(LogLevel.INFO, '\n      The Matlab graphics engine has changed significantly with version 2025a. ELF plots will not be plotted correctly and the software is likely to freeze frequently. It is STRONGLY recommended to downgrade to Matlab 2024b or older!\n');
+        warndlg('The Matlab graphics engine has changed significantly with version 2025a. ELF plots will not be plotted correctly and the software is likely to freeze frequently. It is STRONGLY recommended to downgrade to Matlab 2024b or older!');
+    end
 end
 if verLessThan('matlab', '9.0')
     if verbose
-        Logger.log(LogLevel.INFO, '\n');
-        Logger.log(LogLevel.INFO, '      This program has only been tested for version 9.0 (2016a) and above. Please report any errors or bugs.\n');
+        Logger.log(LogLevel.INFO, '\n      This program has only been tested for version 9.0 (2016a) and above. Please report any errors or bugs.\n');
     end
     warning('This program has only been tested for version 9.0 (2016a) and above. Please report any errors or bugs.');
 end
 if ~osfine
     if verbose
-        Logger.log(LogLevel.INFO, '\n');
-        Logger.log(LogLevel.INFO, '      This program has not been tested on your operating system. Please report any errors or bugs.\n');
+        Logger.log(LogLevel.INFO, '\n      This program has not been tested on your operating system. Please report any errors or bugs.\n');
     end
     warning('This program has not been tested on your operating system. Please report any errors or bugs.');
 end

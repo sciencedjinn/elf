@@ -24,7 +24,7 @@ elseif isempty(s) && isstruct(d)
     s = d;
     if verbose, disp(['Inserting structure for empty field ' n]); end
 elseif isstruct(s) || isstruct(d)
-    error(['Internal error: Field ' n 'exists in both variables, but is not a structure in one of them']);
+    error(['Internal error: Field ' n ' exists in both variables, but is not a structure in one of them']);
 else
     % not structures, return
 end

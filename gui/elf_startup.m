@@ -25,9 +25,9 @@ end
 gui = elf_maingui(status, para, datasets, exts, cbhandle, figName, figh);
 
 %% insert images
-for i = 1:size(status, 1)
+for i = 1:size(status.Colour, 1)
     para2 = elf_para(modules, para.fh.Paths.root, datasets{i});
-    if status(i, 3)
+    if isfield(para2.fh.Paths, "fname_meanimg_jpg") && ~isempty(para2.fh.Paths.fname_meanimg_jpg) && isfile(para2.fh.Paths.fname_meanimg_jpg)
         fname   = para2.fh.Paths.fname_meanimg_jpg;
         info    = [];
         corr    = false;
@@ -61,10 +61,13 @@ for i = 1:size(status, 1)
         case ''
             % all good
         case 'ELF:io:dngCompressed'
-            status(i, 1) = 2;
+            status.Text{i, 1} = 'Images were found, but it appears that they were converted to DNG in the wrong way. Please review the conversion instructions (Help->Getting Started...)';
+            status.Colour(i, 1) = StatusColour.Problem;
         otherwise
-            status(i, 1) = 4;
+            status.Text{i, 1} = 'Images were found, but an error occurred while reading them. Please refer to the error popup displayed during startup.';
+            status.Colour(i, 1) = StatusColour.Problem;
     end
+    
     scale   = para.plot.guiPreviewSize/size(I, 2);
     I       = imresize(I, scale);
     warning('off', 'io_correctdng:NoMatrix')
@@ -73,4 +76,4 @@ for i = 1:size(status, 1)
     drawnow;
 end
 
-elf_maingui_visibility(gui, status);
+elf_maingui_visibility(gui, para, status);

@@ -157,7 +157,7 @@ try
             end
         end
     
-        %% save results output files
+        %% save results output files, including all per-scene analyses (this might be almost nothing, if core isn't calculated)
         sceneName = sprintf('scene%03d', iScene);
         para.fh.saveCoreResults(sceneName, res);
 
